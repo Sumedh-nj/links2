@@ -136,7 +136,7 @@
 body {
 
     background: var(--background-100);
-    font-family: serif, Arial, sans-serif;
+    font-family: Arial, sans-serif;
     color: var(--text-900);
 
     min-height: 100vh;
