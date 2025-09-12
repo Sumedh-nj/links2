@@ -9,7 +9,7 @@ const linksData = {
 
   courses: {
     "AENL220 (Heat)": {
-      "Teams Files": "https://iitdabudhabi.sharepoint.com/sites/AENL220_jacpcl/Shared%20Documents/Forms/AllItems.aspx?id=/sites/AENL220_jacpcl/Shared%20Documents/General&p=true&ga=1",
+      "Lecture slides": "https://iitdabudhabi.sharepoint.com/sites/AENL220_jacpcl/Class%20Materials/Forms/AllItems.aspx",
       Quiz: "https://iitdabudhabi.sharepoint.com/:f:/s/AENL220_jacpcl/Ene8Rq62J5JEonz9fQsD5BUBIJLmyXtU-onfgvHZgCNK4g?e=T6SezX",
       Tutorials: "https://iitdabudhabi.sharepoint.com/:f:/s/AENL220_jacpcl/EtURNCymC25FqStyIHHQjH8BzKEl9InbYIHEWA3reHm2CQ?e=w8iQBg"
     },
@@ -41,7 +41,7 @@ const linksData = {
   { text: "AAPL105 (Mech): Assignment 3 submission by 17/09/2025", expiry: "2025-09-17T17:00:00" },
   { text: "AENL210 (Thermo): Assignment 2 and 3 submission by 16/09/2025", expiry: "2025-09-16T17:00:00" },
   { text: "AENL220 (Heat): Assignment 2 submission by 19/09/2025", expiry: "2025-09-19T17:00:00" }
-  
+
 ]
 };
 
