@@ -38,7 +38,10 @@ const linksData = {
   },
 
  updates: [
-  { text: "Assignment 3 deadline approaching", expiry: "2025-09-20T17:00:00" }
+  { text: "AAPL105 (Mech): Assignment 3 submission by 17/09/2025", expiry: "2025-09-17T17:00:00" },
+  { text: "AENL210 (Thermo): Assignment 2 and 3 submission by 16/09/2025", expiry: "2025-09-16T17:00:00" },
+  { text: "AENL220 (Heat): Assignment 2 submission by 19/09/2025", expiry: "2025-09-19T17:00:00" }
+  
 ]
 };
 
