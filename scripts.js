@@ -38,7 +38,6 @@ const linksData = {
   },
 
  updates: [
-  { text: "What the hell", expiry: "2025-09-11" },
   { text: "Assignment 3 deadline approaching", expiry: "2025-09-20T17:00:00" }
 ]
 };
