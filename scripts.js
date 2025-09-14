@@ -43,7 +43,7 @@ const updatesData = [
   { category: "assignments", text: "AENL210 (Thermo): Assignment 2 and 3 submission by 16/09/2025", expiry: "2025-09-16" },
   { category: "quizzes", text: "AAPL105 (Mech): Quiz on first chapter on 15/09/2025 from 9:15-9:45 AM", expiry: "2025-09-15" },
   { category: "assignments", text: "AENL220 (Heat): Assignment 2 submission on teams by 19/09/2025", expiry: "2025-09-19" },
-  { category: "timetable", text: "AAPL105: Tutorial for Group 2 will be now held on Monday, 14/09/2025 from 3-3:50 PM", expiry: "2025-09-14" },
+  { category: "timetable", text: "AAPL105: Tutorial for Group 2 will be now held on Monday, 15/09/2025 from 3-3:50 PM", expiry: "2025-09-14" },
   { category: "quizzes", text: "AENL222: Quiz based on the portions covered till September 11th will be held on 18/09/2025", expiry: "2025-09-18" }
 ];
 
