@@ -35,20 +35,36 @@ const linksData = {
     "AENL338 (AI)": {
       Blackboard: "https://iida.blackboard.com/ultra/courses/_6_1/outline"
     }
-  },
-
- updates: [
-  { text: "AAPL105 (Mech): Assignment 3 submission by 17/09/2025", expiry: "2025-09-17T17:00:00" },
-  { text: "AENL210 (Thermo): Assignment 2 and 3 submission by 16/09/2025", expiry: "2025-09-16T17:00:00" },
-  { text: "AENL220 (Heat): Assignment 2 submission by 19/09/2025", expiry: "2025-09-19T17:00:00" }
-
-]
+  }
 };
 
+const updatesData = [
+  { category: "assignments", text: "AAPL105 (Mech): Assignment 3 submission by 17/09/2025", expiry: "2025-09-17" },
+  { category: "assignments", text: "AENL210 (Thermo): Assignment 2 and 3 submission by 16/09/2025", expiry: "2025-09-16" },
+  { category: "quizzes", text: "AAPL105 (Mech): Quiz on first chapter on 15/09/2025 from 9:15-9:45 AM", expiry: "2025-09-15" },
+  { category: "assignments", text: "AENL220 (Heat): Assignment 2 submission on teams by 19/09/2025", expiry: "2025-09-19" },
+  { category: "timetable", text: "AAPL105: Tutorial for Group 2 will be now held on Monday, 14/09/2025 from 3-3:50 PM", expiry: "2025-09-14" },
+  { category: "quizzes", text: "AENL222: Quiz based on the portions covered till September 11th will be held on 18/09/2025", expiry: "2025-09-18" }
+];
 
+// ====== Render General Links ======
+function renderGeneralLinks(selector, data) {
+  const container = document.querySelector(selector);
+  if (!container) return;
 
-function renderLinks1(thing, data) {
-  const container = document.querySelector(thing);
+  for (const [name, url] of Object.entries(data)) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.textContent = name;
+    container.appendChild(link);
+  }
+}
+
+// ====== Render Course Links ======
+function renderCourseLinks(selector, data) {
+  const container = document.querySelector(selector);
+  if (!container) return;
 
   for (const [course, resources] of Object.entries(data)) {
     const box = document.createElement("div");
@@ -68,61 +84,44 @@ function renderLinks1(thing, data) {
 
     container.appendChild(box);
   }
-}
-// For general links in .box2
-function renderGeneralLinks(selector, data) {
-  const container = document.querySelector(selector);
-  if (!container) return;
+};
 
-  for (const [name, url] of Object.entries(data)) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.target = "_blank";
-    link.textContent = name;
-    container.appendChild(link);
-  }
-}
+function renderUpdates() {
+    const now = new Date();
 
-function renderUpdates(selector, updates) {
-  const container = document.querySelector(selector);
-  if (!container) return;
+    updatesData.forEach(update => {
+        // Get expiry date as the day AFTER the update
+        const expiryDate = new Date(update.expiry);
+        expiryDate.setDate(expiryDate.getDate() + 1); // move to next day
+        expiryDate.setHours(0, 0, 0, 0); // start of the next day
 
-  const now = new Date();
+        if (now < expiryDate) { // still valid
+            const container = document.getElementById(update.category + "-box");
+            if (container) {
+                const p = document.createElement("p");
+                p.textContent = update.text;
+                container.appendChild(p);
+            }
+        }
+    });
+};
 
-  updates.forEach(update => {
-    const expiryDateTime = new Date(update.expiry);
-    if (now <= expiryDateTime) {
-      const p = document.createElement("p");
-      p.textContent = update.text;
-      container.appendChild(p);
-    }
-  });
-}
+
+// ====== Theme Toggle ======
 const toggleBtn = document.getElementById("theme-toggle");
-
-// Initialize theme from system preference
 const currentTheme = localStorage.getItem("theme");
-if (currentTheme) {
-    document.documentElement.setAttribute("data-theme", currentTheme);
-}
+if (currentTheme) document.documentElement.setAttribute("data-theme", currentTheme);
 
 toggleBtn.addEventListener("click", () => {
-    const theme = document.documentElement.getAttribute("data-theme");
-    const newTheme = theme === "light" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-
-  
+  const theme = document.documentElement.getAttribute("data-theme");
+  const newTheme = theme === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("theme", newTheme);
 });
 
-// Set initial icon
-
-
-
+// ====== Initialize Page ======
 window.addEventListener("DOMContentLoaded", () => {
-  renderGeneralLinks(".general", linksData.general );   // general links
-  renderLinks1(".links", linksData.courses);  // course links
-  renderUpdates(".updates", linksData.updates); // updates
+  renderGeneralLinks(".general", linksData.general);   // general links
+  renderCourseLinks(".links", linksData.courses);      // course links
+  renderUpdates(updatesData);                          // updates
 });
-
-
