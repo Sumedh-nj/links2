@@ -1,4 +1,4 @@
-// ====== Links Data ======
+8.3// ====== Links Data ======
 const linksData = {
   general: {
     ERP: "https://iitdadierp.iitd.ac.in/student/login",
@@ -117,10 +117,7 @@ toggleBtn.addEventListener("click", () => {
 
 
 //Updates:
-addUpdate("timetable","AAPL105+AENL210: Timings swapped, AENL210 lecture at 10 am, AAPL105 lecture at 11 am for 16/09/2025 ","2025-09-16")
 
-
-addUpdate("quizzes","AENL210: Quiz of the week on Friday, 19/09/2025","2025-09-19")
 
 
 
