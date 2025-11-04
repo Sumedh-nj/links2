@@ -122,18 +122,11 @@ toggleBtn.addEventListener("click", () => {
 });
 
 // ====== Updates ======
-addUpdate("assignments","AENL210: Tutorial submission on Monday, 22/09/2025","2025-09-22");
-addUpdate("timetable","Online classes will be held on Sunday 21/09/2025 following the Wednesday timetable","2025-09-21");
-addUpdate("timetable","AAPL105: No class on Sunday, instead a physical class from 3-4 PM on Monday, 22/09/2025","2025-09-22");
-addUpdate("assignments","AAPL105: Submission of Assignment for chapter 3 is on 24/09/2025, questions uploaded on blackboard","2025-09-24");
-addUpdate("timetable","AENL220: Buffer class will be taken on 24/09/2025 from 12:30 in classroom 5","2025-09-24");
-addUpdate("assignments","AENL210: Tutorial 5 submission on Thursday, 25/09/2025","2025-09-25");
-addUpdate("quizzes","AENL210: Quiz 5 on Wednesday, 01/10/2025 at 12:30 PM","2025-10-01");
-addUpdate("quizzes","AAPL105: Quiz 2 based on Homework 3 and 4 will be on 29/09/2025, 3-4 PM","2025-09-29");
-addUpdate("quizzes","AENL338: Quiz on Friday, 3/10/2025","2025-10-03");
-addUpdate("assignments", "AAPL105: Assignment 5 to be submitted on 01/10/2025, questions uploaded on blackboard", "2025-10-01");
+
 addUpdate("timetable","AENL220: Thursday tutorial will be held in the first half, ie. classes will start from 9 AM","2026-09-25");
-addUpdate("quizzes","AENL220: Quiz based on start till fins on Tuesday, 30/09/2025 9-10 AM","2025-09-30");
+addUpdate("assignments","AAPL105: Assignment 7 to be submitted on Monday 10/11/2025 by 5:00 pm","2025-11-10")
+addUpdate("assignments","AENL210: Assignment 6 and Tutorial 9 to be submitted on Friday 7th November by 11:30 AM","2025-11-07")
+addUpdate("quizzes","AENL210: Quiz 6 to be held on Friday 7th November in the 11:30 AM buffer class","2025-11-07")
 
 // ====== Initialize Page ======
 window.addEventListener("DOMContentLoaded", () => {
