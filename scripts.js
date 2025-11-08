@@ -124,10 +124,8 @@ toggleBtn.addEventListener("click", () => {
 // ====== Updates ======
 
 addUpdate("timetable","AENL220: Thursday tutorial will be held in the first half, ie. classes will start from 9 AM","2026-09-25");
-addUpdate("assignments","AAPL105: Assignment 7 to be submitted on Monday 10/11/2025 by 5:00 pm","2025-11-10")
-addUpdate("assignments","AENL210: Assignment 6 and Tutorial 9 to be submitted on Friday 7th November by 11:30 AM","2025-11-07")
-addUpdate("quizzes","AENL210: Quiz 6 to be held on Friday 7th November in the 11:30 AM buffer class","2025-11-07")
-addUpdate("quizzes","AENL220: Quiz to be held on 5th November, during buffer hour 12:30 to 1:00","2025-11-06")
+addUpdate("assignments","AAPL105: Assignment 7 to be submitted on Monday 10/11/2025 by 5:00 pm","2025-11-10");
+addUpdate("assignments","AENL220: Assignment on Navier Stokes Eqn to be submitted on teams by 14th November","2025-11-14");
 
 // ====== Initialize Page ======
 window.addEventListener("DOMContentLoaded", () => {
