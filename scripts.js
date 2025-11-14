@@ -124,8 +124,13 @@ toggleBtn.addEventListener("click", () => {
 // ====== Updates ======
 
 addUpdate("timetable","AENL220: Thursday tutorial will be held in the first half, ie. classes will start from 9 AM","2026-09-25");
-addUpdate("assignments","AAPL105: Assignment 7 to be submitted on Monday 10/11/2025 by 5:00 pm","2025-11-10");
+
+addUpdate("assignments","AENL210: Assignment to be submitted on Monday 17/11/2025","2025-11-17");
 addUpdate("assignments","AENL220: Assignment on Navier Stokes Eqn to be submitted on teams by 14th November","2025-11-14");
+addUpdate("assignments","AAPL105: Assignment 8 to be submitted on Tuesday 18/11/2025","2025-11-18");
+addUpdate("quizzes","AENL338: Quiz 2 to be held on 21/11/2025","2025-11-21");
+addUpdate("quizzes","AENL222: Quiz for digital logic on Thurdsay 20/11/2025","2025-11-20");
+
 
 // ====== Initialize Page ======
 window.addEventListener("DOMContentLoaded", () => {
