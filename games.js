@@ -1,4 +1,3 @@
-
 // ====== Flappy Cell (Energy Theme) ======
 
 window.initFlappyCell = function() {
@@ -8,20 +7,21 @@ window.initFlappyCell = function() {
   const canvas = document.createElement('canvas');
   canvas.width = 400;
   canvas.height = 600;
-  canvas.style.background = 'var(--background-100)';
+  canvas.style.background = 'var(--cell-bg)';
   canvas.style.display = 'block';
   canvas.style.margin = '0 auto';
-  canvas.style.border = '2px solid var(--primary-600)';
+  canvas.style.border = '4px solid var(--cell-border)';
+  canvas.style.borderRadius = '18px';
+  canvas.style.outline = '2.5px solid #0e2a0e';
   el.appendChild(canvas);
-
 
   // Game variables
   const ctx = canvas.getContext('2d');
   let cellY = canvas.height / 2;
   let cellX = 80;
   let velocity = 0;
-  let gravity = 0.5;
-  let flapPower = -8;
+  let gravity = 0.38; // easier gravity
+  let flapPower = -7.5; // easier flap
   let pipes = [];
   let frame = 0;
   let score = 0;
@@ -95,76 +95,81 @@ window.initFlappyCell = function() {
     ctx.fillText('Best: ' + bestScore, canvas.width/2, 90);
     ctx.restore();
   }
-
+        ctx.fillStyle = '#ffe066'; // yellow ball
   function drawStartScreen() {
-    ctx.save();
-    ctx.fillStyle = 'var(--background-200)';
-    ctx.globalAlpha = 0.95;
+        ctx.shadowColor = '#f7c948';
+        ctx.shadowBlur = 16;
+    // Vibrant green background
+    ctx.fillStyle = '#184c19';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-    ctx.font = 'bold 38px Arial';
-    ctx.fillStyle = 'var(--primary-700)';
+    ctx.font = 'bold 44px Arial';
+    ctx.fillStyle = '#ecfaeb';
     ctx.textAlign = 'center';
-    ctx.fillText('Flappy Cell', canvas.width/2, 180);
-    ctx.font = 'bold 22px Arial';
-    ctx.fillStyle = 'var(--accent-600)';
-    ctx.fillText('Energy Engineering Edition', canvas.width/2, 220);
+    ctx.fillText('Flappy Cell', canvas.width/2, 170);
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#daf5d6';
+    ctx.fillText('Energy Engineering Edition', canvas.width/2, 210);
     ctx.font = '18px Arial';
-    ctx.fillStyle = 'var(--text-900)';
-    ctx.fillText('Click or press Space to start', canvas.width/2, 270);
+    ctx.fillStyle = '#daf5d6';
+    ctx.fillText('Click or press Space to start', canvas.width/2, 260);
     ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = 'var(--primary-600)';
-    ctx.fillText('Tip: Avoid battery bars!', canvas.width/2, 320);
-    ctx.restore();
+    ctx.fillStyle = '#6ad65c';
+    ctx.fillText('Tip: Avoid battery bars!', canvas.width/2, 300);
     // Draw cell preview
     ctx.save();
     ctx.translate(canvas.width/2, 370);
-    drawCell();
+    ctx.beginPath();
+    ctx.arc(0, 0, 28, 0, Math.PI * 2);
+    ctx.fillStyle = '#45cc33';
+    ctx.shadowColor = '#6ad65c';
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.restore();
     ctx.restore();
   }
-
+        ctx.fillStyle = '#26a644'; // vibrant green pipes
   function drawGameOver() {
     ctx.save();
-    ctx.fillStyle = 'var(--background-200)';
-    ctx.globalAlpha = 0.95;
+    // Vibrant green background
+    ctx.fillStyle = '#184c19';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-    ctx.font = 'bold 40px Arial';
-    ctx.fillStyle = 'var(--accent-700)';
+    ctx.font = 'bold 44px Arial';
+    ctx.fillStyle = '#ecfaeb';
     ctx.textAlign = 'center';
-    ctx.fillText('Game Over!', canvas.width/2, 180);
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = 'var(--primary-700)';
-    ctx.fillText('Score: ' + score, canvas.width/2, 230);
-    ctx.font = 'bold 18px Arial';
-    ctx.fillStyle = 'var(--accent-700)';
-    ctx.fillText('Best: ' + bestScore, canvas.width/2, 260);
-    ctx.font = '16px Arial';
-    ctx.fillStyle = 'var(--text-900)';
-    ctx.fillText('Click or press Space to restart', canvas.width/2, 300);
+    ctx.fillText('Game Over!', canvas.width/2, 170);
+    ctx.font = 'bold 26px Arial';
+    ctx.fillStyle = '#daf5d6';
+    ctx.fillText('Score: ' + score, canvas.width/2, 220);
+    ctx.font = 'bold 20px Arial';
+    ctx.fillStyle = '#6ad65c';
+        ctx.fillStyle = '#184c19';
+    ctx.font = '18px Arial';
+    ctx.fillStyle = '#daf5d6';
+    ctx.fillText('Click or press Space to restart', canvas.width/2, 295);
     ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = 'var(--primary-600)';
-    ctx.fillText('Tip: Avoid battery bars!', canvas.width/2, 340);
-    ctx.restore();
+    ctx.fillStyle = '#6ad65c';
+    ctx.fillText('Tip: Try to beat your best score!', canvas.width/2, 330);
     // Draw cell preview
     ctx.save();
     ctx.translate(canvas.width/2, 400);
-    drawCell();
+    ctx.beginPath();
+    ctx.arc(0, 0, 28, 0, Math.PI * 2);
+    ctx.fillStyle = '#45cc33';
+    ctx.shadowColor = '#6ad65c';
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.restore();
     ctx.restore();
   }
 
   function drawBackground() {
-    // Draw subtle energy icons in background
+    // Solid green background for gameplay
     ctx.save();
-    ctx.globalAlpha = 0.08;
-    ctx.font = 'bold 80px Arial';
-    ctx.fillStyle = 'var(--accent-600)';
-    for (let i = 0; i < 5; i++) {
-      ctx.fillText('⚡', 60 + i*70, 120);
-      ctx.fillText('🔋', 30 + i*80, 500);
-    }
-    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#184c19';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
+    // Also set body background to green
+    document.body.style.background = '#184c19';
   }
 
   function resetGame() {
@@ -178,7 +183,7 @@ window.initFlappyCell = function() {
   }
 
   function addPipe() {
-    const gap = 130;
+    const gap = 170; // easier gap
     const minHeight = 60;
     const maxHeight = canvas.height - gap - minHeight;
     const top = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
@@ -198,15 +203,14 @@ window.initFlappyCell = function() {
     frame++;
 
     // Add pipes
-    if (frame % 90 === 0) addPipe();
+    if (frame % 110 === 0) addPipe(); // slower pipe spawn
 
     // Move pipes
     for (let pipe of pipes) {
-      pipe.x -= 3;
+      pipe.x -= 2.2; // slower pipe speed
     }
     // Remove off-screen pipes
     pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
-
     // Collision
     for (let pipe of pipes) {
       if (
