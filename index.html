@@ -10,6 +10,7 @@
     document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
   </script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="games.css">
   <style>
     .layout {
       display: flex;
@@ -74,6 +75,24 @@
   </style>
 </head>
 <body>
+
+  <div id="games-section">
+    <button id="open-games-modal">GAMES</button>
+  </div>
+
+  <!-- Games Modal Popup -->
+  <div id="games-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="close-games-modal">&times;</span>
+      <h2>Choose a Game</h2>
+      <div id="game-choices">
+        <button class="game-choice-btn" data-game="flappybird">Flappy Cell</button>
+        <button class="game-choice-btn" data-game="snake">Snake</button>
+        <button class="game-choice-btn" data-game="energypong">Energy Pong</button>
+        <button class="game-choice-btn" data-game="poker">Poker</button>
+      </div>
+    </div>
+  </div>
   <button class="button" id="theme-toggle">◐</button>
 
   <div class="layout">
@@ -135,5 +154,7 @@
   </script>
 
   <script src="scripts.js"></script>
+  <script src="gamesscript.js"></script>
+
 </body>
 </html>
