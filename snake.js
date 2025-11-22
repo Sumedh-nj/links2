@@ -23,15 +23,84 @@
   const gameOverRestart = document.getElementById('gameOverRestart');
   // (victory overlay removed for infinite-wrapping gameplay)
 
-  // Grid configuration
-  // Accessibility: increase cellSize and use a smaller finite grid (15x15)
-  const cellSize = 40; // pixels per grid cell (large touch targets; between 30-40 as requested)
-  const cols = 12; // reduced grid columns for easier play
-  const rows = 12; // reduced grid rows for easier play
-  // Ensure canvas dimensions match logical grid size
-  canvas.width = cols * cellSize;
-  canvas.height = rows * cellSize;
-  const gridBoundary = { cols, rows };
+  // Grid configuration (dynamic, computed per-device)
+  // We'll compute these at runtime so the grid fits the available viewport/container.
+  let cellSize = 40; // will be recalculated
+  let cols = 12;
+  let rows = 12;
+  const MIN_CELL = 20; // don't make cells too small
+  const MAX_CELL = 60; // don't make cells too large
+  const MIN_COLS = 8;
+  const MAX_COLS = 24;
+  let gridBoundary = { cols, rows };
+  let resizeTimer = null;
+
+  // Compute grid configuration based on the available width of the canvas wrapper
+  function computeGridConfig() {
+    const wrapEl = document.querySelector('.canvas-wrap') || document.body;
+    // available space: limit to a smaller fraction so the board stays compact
+    const availWidth = Math.max(160, Math.min(wrapEl.clientWidth || window.innerWidth, Math.floor(window.innerWidth * 0.90)));
+    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.60));
+    const avail = Math.min(availWidth, availHeight);
+
+    // Zoom mode: make the map have fewer columns (smaller map) and larger cells
+    const DESIRED_COLS_SMALL = 8; // target small map footprint
+    // Don't exceed a modest local max for columns on larger screens
+    const LOCAL_MAX_COLS = Math.min(MAX_COLS, 16);
+    // Start from desired small cols but don't exceed what the available space can show
+    const estimatedCols = Math.max(MIN_COLS, Math.min(LOCAL_MAX_COLS, Math.floor(avail / MIN_CELL)));
+    // bias towards the smaller desired count when possible
+    const newCols = Math.min(estimatedCols, DESIRED_COLS_SMALL);
+    const newRows = newCols; // square grid
+
+    // Compute a generous cell size so snake and cells look larger (zoomed in)
+    // We first compute the base cell size that fits the available space, then increase it
+    const baseCell = Math.floor(avail / newCols);
+    let newCell = Math.floor(baseCell * 1.15); // scale up by 15%
+    // Ensure newCell fits reasonable bounds and does not overflow the available width
+    newCell = Math.max(MIN_CELL, Math.min(MAX_CELL, newCell));
+    // If increasing causes canvas width to exceed available space, clamp it back
+    if (newCell * newCols > avail) {
+      newCell = Math.floor(avail / newCols);
+    }
+
+    const changed = (newCell !== cellSize) || (newCols !== cols) || (newRows !== rows);
+    cellSize = newCell;
+    cols = newCols;
+    rows = newRows;
+    gridBoundary = { cols, rows };
+
+    // Back to classic behavior: set canvas backing buffer to exact grid pixels
+    // (width = cols * cellSize) so drawing uses straightforward integer coordinates.
+    const cssWidth = cols * cellSize;
+    const cssHeight = rows * cellSize;
+    canvas.style.width = cssWidth + 'px';
+    canvas.style.height = cssHeight + 'px';
+    canvas.width = cssWidth;
+    canvas.height = cssHeight;
+    // Reset any transforms so drawing uses CSS pixel coordinates directly
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Update CSS variable for any styles that reference cell size
+    const wrap = document.querySelector('.canvas-wrap');
+    if (wrap) wrap.style.setProperty('--cell-size', `${cellSize}px`);
+
+    return changed;
+  }
+
+  // Debounced resize handler
+  function scheduleResize() {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const changed = computeGridConfig();
+      if (changed) {
+        // reinitialize game to avoid out-of-bounds segments
+        initGame();
+      } else {
+        draw();
+      }
+    }, 120);
+  }
 
   // Game constants
   const ENERGY_PER_FOOD = 10; // MWh per RE unit
@@ -84,6 +153,11 @@
     if (gameOverOverlay) gameOverOverlay.setAttribute('aria-hidden', 'true');
     draw();
   }
+
+  // initial compute of grid and attach resize listener
+  computeGridConfig();
+  // ensure layout responds to viewport changes
+  window.addEventListener('resize', scheduleResize);
 
   // Place renewableSource (food) ensuring it doesn't collide with snake or obstacles
   function placeRenewableSource() {
@@ -338,13 +412,22 @@
   let touchStartX = null;
   let touchStartY = null;
   const SWIPE_MIN = 30; // pixels
+  // Prevent touch gestures on the canvas from scrolling the page.
   canvas.addEventListener('touchstart', (ev) => {
+    // preventDefault to stop page scroll/zoom gestures when touching the game
+    if (ev.cancelable) ev.preventDefault();
     if (!ev.touches || !ev.touches[0]) return;
     touchStartX = ev.touches[0].clientX;
     touchStartY = ev.touches[0].clientY;
-  }, {passive: true});
+  }, {passive: false});
+
+  canvas.addEventListener('touchmove', (ev) => {
+    // cancel page scrolling while swiping on the game area
+    if (ev.cancelable) ev.preventDefault();
+  }, {passive: false});
 
   canvas.addEventListener('touchend', (ev) => {
+    if (ev.cancelable) ev.preventDefault();
     if (touchStartX === null || touchStartY === null) return;
     const touch = ev.changedTouches && ev.changedTouches[0];
     if (!touch) return;
@@ -367,7 +450,7 @@
       }
     }
     touchStartX = null; touchStartY = null;
-  }, {passive: true});
+  }, {passive: false});
 
   // Buttons
   // Start button removed (game now begins on first key press or when Restart is used)
