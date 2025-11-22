@@ -1,17 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Snake</title>
-  <link rel="stylesheet" href="games.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Power Grid Serpent — Energy Flow Snake</title>
+  <link rel="stylesheet" href="snake.css">
 </head>
 <body>
-  <h1>Snake</h1>
-  <div id="snake-game"></div>
-  <script src="games.js"></script>
-  <script>
-    if (window.initSnake) window.initSnake();
-  </script>
+  <main class="wrap">
+    <header>
+      <h1>Power Grid Serpent <small style="font-weight:600;margin-left:8px;color:var(--accent)">(<span id="energy">0</span> MWh) | HIGH SCORE: <span id="highScore">0</span> MWh</small></h1>
+    </header>
+
+    <section class="game-area">
+      <div class="canvas-wrap">
+        <canvas id="gridCanvas" width="900" height="900" aria-label="Energy Flow Snake game"></canvas>
+      </div>
+
+      <!-- Game Over overlay (hidden by default) -->
+      <div id="gameOverOverlay" class="game-over-overlay" aria-hidden="true">
+        <div class="game-over-panel">
+          <div id="gameOverMessage" class="game-over-message">GAME OVER — Short circuit! You hit the transmission line.</div>
+          <button id="gameOverRestart" class="game-over-restart">Restart</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="pauseBtn">Pause</button>
+      </div>
+
+      <!-- (No victory overlay — infinite wrapping gameplay restored) -->
+    </section>
+  </main>
+
+  <script src="snake.js"></script>
 </body>
 </html>

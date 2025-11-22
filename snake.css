@@ -1,0 +1,100 @@
+:root{
+  --bg: #071405;
+  --panel: #0f2a09;
+  --accent: #45cc33;
+  --accent-2: #f39c12;
+  --loss: #6b6b6b;
+  --spike: #c0392b;
+  --text: #eafaf1;
+}
+*{box-sizing:border-box}
+body{background:linear-gradient(180deg,var(--bg),#0b2a0a);color:var(--text);font-family:system-ui,Segoe UI,Arial;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.wrap{width:min(780px,96vw);padding:18px;overflow:hidden;max-width:100vw;max-height:100vh;box-sizing:border-box}
+/* Ensure the primary game-board container (if used) fits inside the outer wrap */
+#game-board-container{width:100%;height:auto;max-width:100%;box-sizing:border-box}
+header{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+h1{margin:0;font-size:1.6rem}
+.subtitle{margin:0;color:rgba(234,250,241,0.85)}
+.game-area{background:var(--panel);padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);display:grid;grid-template-columns:1fr;gap:10px;position:relative}
+/* Canvas: responsive, larger, and textured background for a high-tech grid feel */
+/* Canvas wrapper provides subtle grid lines; canvas is transparent so lines show through */
+.canvas-wrap{display:block;margin:0 auto;width:100%;max-width:900px;border-radius:10px;overflow:hidden;border:4px solid rgba(30,120,45,0.85);box-shadow:0 10px 36px rgba(0,0,0,0.65), 0 0 18px rgba(36,123,40,0.06);background-color:#0f2027}
+
+canvas{display:block;width:100%;height:auto;background:transparent;border-radius:0;}
+.controls{display:flex;gap:8px;justify-content:center}
+.controls button{background:var(--accent);border:none;padding:8px 12px;border-radius:8px;color:#07210a;font-weight:700;cursor:pointer}
+.controls button:active{transform:translateY(1px)}
+
+/* Pause button specific styling for a cleaner, modern look */
+#pauseBtn{background:linear-gradient(180deg,#47d63a,#2ea01d);color:#04200a;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 6px 18px rgba(46,160,29,0.12);font-weight:800;letter-spacing:0.4px}
+#pauseBtn:hover{filter:brightness(1.05);transform:translateY(-1px)}
+#pauseBtn:active{transform:translateY(1px);filter:brightness(0.95)}
+.cell{display:inline-block;width:18px;height:18px;border-radius:4px}
+.cell.snake{background:linear-gradient(90deg,var(--accent-2),#ff5e3a)}
+.cell.food{background:var(--accent);border-radius:50%}
+.cell.loss{background:var(--loss)}
+.cell.spike{background:var(--spike)}
+footer{margin-top:8px;text-align:center;color:rgba(234,250,241,0.7)}
+
+@media (max-width:520px){
+  canvas{width:94vw;height:auto}
+}
+
+/* Mobile-specific layout tweaks for small screens */
+@media (max-width:600px){
+  .wrap{width:95vw;padding:12px}
+  header h1{font-size:1.0rem}
+  header h1 small{font-size:0.85rem}
+  .canvas-wrap{max-width:95vw}
+  canvas{width:95vw;height:auto}
+  .game-area{padding:10px}
+  .game-over-panel{min-width:220px;padding:10px}
+}
+
+/* Game over overlay styles */
+.game-over-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.game-over-panel{pointer-events:auto;background:rgba(0,0,0,0.66);border:2px solid rgba(255,255,255,0.06);padding:12px 18px;border-radius:10px;display:flex;flex-direction:column;gap:8px;align-items:center;min-width:260px}
+.game-over-message{color:#fff;text-align:center;font-weight:700;font-size:14px;line-height:1.1}
+.game-over-restart{background:var(--accent);border:none;padding:8px 12px;border-radius:8px;color:#07210a;font-weight:800;cursor:pointer}
+
+/* Hidden by default; JS will toggle display */
+#gameOverOverlay[aria-hidden="true"]{display:none}
+#gameOverOverlay[aria-hidden="false"]{display:flex}
+
+/* Pre-round overlay */
+/* Victory overlay removed for infinite-wrapping gameplay */
+
+/* Constrain game board on tablets and phones: force the game board to fit viewport up to 1200px */
+@media (max-width:1200px){
+  /* Primary game container (if present) - keep a 1:1 aspect while fitting viewport */
+  #game-board-container{
+    width:90vw !important;
+    max-width:90vw !important;
+    height:90vw !important; /* keeps square aspect */
+    max-height:90vh !important; /* prevents it from being taller than viewport */
+    margin:20px auto !important;
+    box-sizing:border-box;
+  }
+
+  /* Outer app container padding adjustments */
+  .app-container{padding:10px}
+
+  /* Also ensure our existing wrap and canvas-wrap respond and don't overflow */
+  .wrap{width:90vw;padding:10px;margin:0 auto}
+  .canvas-wrap{width:90vw;max-width:90vw;margin:0 auto;box-sizing:border-box}
+
+  /* Make the canvas scale down proportionally to its container width */
+  .canvas-wrap canvas, canvas{width:100% !important;height:auto !important;display:block}
+
+  /* Reduce header/score sizes to preserve vertical space */
+  header h1{font-size:1.0rem}
+  header h1 small{font-size:0.85rem}
+
+  /* Ensure game over panel fits */
+  .game-over-panel{min-width:200px;padding:10px}
+
+  /* Optional: slightly reduce control button sizes on smaller screens */
+  .controls button{padding:8px 10px}
+  #pauseBtn{padding:8px 10px}
+}
+
