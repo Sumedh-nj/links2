@@ -19,36 +19,7 @@
       gap: 20px;
     }
 
-    .video-column {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      flex: 0 0 250px;
-    }
-
-    .video-column.left-videos {
-      margin-left: 10px; /* push right */
-    }
-
-    .video-column.right-videos {
-      margin-right: 10px; /* push left */
-    }
-
-    .video-box {
-      aspect-ratio: 9 / 16;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid rgba(0,0,0,0.3);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      background: #000;
-    }
-
-    .video-box video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    /* video columns removed */
 
     .main-content {
       flex: 1;
@@ -96,12 +67,6 @@
   <button class="button" id="theme-toggle">◐</button>
 
   <div class="layout">
-    <!-- Left videos -->
-    <div class="video-column left-videos">
-      <div class="video-box"><video autoplay loop muted playsinline></video></div>
-      <div class="video-box"><video autoplay loop muted playsinline></video></div>
-    </div>
-
     <!-- Main content -->
     <div class="main-content">
       <div class="container">
@@ -111,47 +76,33 @@
         <div class="general"></div>
         <div class="links"></div>
 
-        <div class="updates">
-          <h1>Updates</h1>
-          <div class="box" id="timetable-box"><h2>Timetable</h2></div>
-          <div class="box" id="assignments-box"><h2>Assignments</h2></div>
-          <div class="box" id="quizzes-box"><h2>Quizzes</h2></div>
+        <div class="updates-layout">
+          <div class="reel-panel left-reel">
+            <h3>Random Clip</h3>
+            <div class="reel-frame">
+              <video id="local-clip-left" playsinline autoplay muted loop></video>
+            </div>
+          </div>
+
+          <div class="updates">
+            <h1>Updates</h1>
+            <div class="box" id="timetable-box"><h2>Timetable</h2></div>
+            <div class="box" id="assignments-box"><h2>Assignments</h2></div>
+            <div class="box" id="quizzes-box"><h2>Quizzes</h2></div>
+          </div>
+
+          <div class="reel-panel right-reel">
+            <h3>Random Clip</h3>
+            <div class="reel-frame">
+              <video id="local-clip-right" playsinline autoplay muted loop></video>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Right videos -->
-    <div class="video-column right-videos">
-      <div class="video-box"><video autoplay loop muted playsinline></video></div>
-      <div class="video-box"><video autoplay loop muted playsinline></video></div>
-    </div>
   </div>
 
-  <script>
-    const videos = [
-      "idk1.mp4","idk2.mp4","idk3.mp4","idk4.mp4","idk5.mp4","idk6.mp4",
-      "idk7.mp4","idk8.mp4","idk9.mp4","idk10.mp4","idk11.mp4","idk12.mp4",
-      "idk13.mp4","idk15.mp4","idk16.mp4"
-    ];
-
-    // Fisher–Yates shuffle
-    function shuffle(arr) {
-      let array = [...arr];
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    const shuffled = shuffle(videos);
-    const selected = shuffled.slice(0, 4); // 4 unique picks
-
-    const videoElements = document.querySelectorAll(".video-box video");
-    videoElements.forEach((vid, i) => {
-      vid.src = selected[i];
-    });
-  </script>
+  <!-- Video elements and mp4 autoplay removed -->
 
   <script src="scripts.js"></script>
   <script src="gamesscript.js"></script>

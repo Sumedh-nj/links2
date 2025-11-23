@@ -37,6 +37,40 @@ const linksData = {
 // ====== Updates Data ======
 const updatesData = [];
 
+// ====== Instagram Reels (popular picks) ======
+// Local vertical clips (idk1.mp4 ... idk16.mp4)
+const localClips = Array.from({ length: 16 }, (_, i) => `idk${i + 1}.mp4`);
+
+function pickRandomClips(count) {
+  const pool = [...localClips];
+  const result = [];
+  for (let i = 0; i < count && pool.length; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    result.push(pool.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+function renderLocalClips() {
+  const leftVid = document.getElementById("local-clip-left");
+  const rightVid = document.getElementById("local-clip-right");
+  if (!leftVid || !rightVid || localClips.length === 0) return;
+  const [leftSrc, rightSrc] = pickRandomClips(2);
+  [leftVid, rightVid].forEach((vid, idx) => {
+    const source = idx === 0 ? leftSrc : rightSrc;
+    vid.src = source;
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.loop = true;
+    vid.autoplay = true;
+    vid.load();
+    vid.play().catch(() => {
+      vid.muted = true;
+      vid.play().catch(() => {});
+    });
+  });
+}
+
 // ====== Helper to Add Update ======
 function addUpdate(category, text, expiry) {
   updatesData.push([category, text, expiry]);
@@ -137,4 +171,5 @@ window.addEventListener("DOMContentLoaded", () => {
   renderGeneralLinks(".general", linksData.general);
   renderCourseLinks(".links", linksData.courses);
   renderUpdates();
+  renderLocalClips();
 });
