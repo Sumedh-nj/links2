@@ -8,17 +8,17 @@
   --text: #eafaf1;
 }
 *{box-sizing:border-box}
-body{background:linear-gradient(180deg,var(--bg),#0b2a0a);color:var(--text);font-family:system-ui,Segoe UI,Arial;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;overflow-x:hidden}
-.wrap{width:90%;max-width:1400px;margin:0 auto;padding:18px;overflow:hidden;box-sizing:border-box}
+body{background:linear-gradient(180deg,var(--bg),#0b2a0a);color:var(--text);font-family:system-ui,Segoe UI,Arial;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;overflow-x:hidden;padding:16px 10px;box-sizing:border-box}
+.wrap{width:96vw;max-width:980px;margin:0 auto;padding:14px;overflow:hidden;box-sizing:border-box}
 /* Ensure the primary game-board container (if used) fits inside the outer wrap */
 #game-board-container{width:100%;height:auto;max-width:100%;box-sizing:border-box;touch-action:none}
 header{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 h1{margin:0;font-size:1.6rem}
 .subtitle{margin:0;color:rgba(234,250,241,0.85)}
-.game-area{background:var(--panel);padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);display:grid;grid-template-columns:1fr;gap:10px;position:relative}
+.game-area{background:var(--panel);padding:12px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);display:grid;grid-template-columns:1fr;gap:10px;position:relative}
 /* Canvas: responsive, larger, and textured background for a high-tech grid feel */
 /* Canvas wrapper provides subtle grid lines; canvas is transparent so lines show through */
-.canvas-wrap{display:block;margin:0 auto;/* width is controlled by JS to avoid CSS scaling; wrapper still constrains size */border-radius:10px;overflow:hidden;border-style:solid;border-color:rgba(30,120,45,0.85);box-shadow:0 10px 36px rgba(0,0,0,0.65), 0 0 18px rgba(36,123,40,0.06);background-color:#0f2027;width:100%}
+.canvas-wrap{display:block;margin:0 auto;/* width is controlled by JS to avoid CSS scaling; wrapper still constrains size */border-radius:10px;overflow:hidden;border-style:solid;border-color:rgba(30,120,45,0.85);box-shadow:0 10px 36px rgba(0,0,0,0.65), 0 0 18px rgba(36,123,40,0.06);background-color:#0f2027;width:min(96vw,820px)}
 /* Border thickness scales with cell size so the rectangle appears larger when cells are larger */
 .canvas-wrap{border-width:clamp(2px, calc(var(--cell-size) / 10), 14px)}
 
@@ -73,7 +73,7 @@ footer{margin-top:8px;text-align:center;color:rgba(234,250,241,0.7)}
 
   /* Adjust surrounding layout to fit smaller screens */
   .wrap{width:95vw;padding:10px;margin:0 auto}
-  .canvas-wrap{width:95vw;max-width:95vw;margin:0 auto;box-sizing:border-box;touch-action:none}
+  .canvas-wrap{width:95vw;max-width:760px;margin:0 auto;box-sizing:border-box;touch-action:none}
 
   /* Reduce header/score sizes to preserve vertical space */
   header h1{font-size:1.0rem}
@@ -86,4 +86,3 @@ footer{margin-top:8px;text-align:center;color:rgba(234,250,241,0.7)}
   .controls button{padding:8px 10px}
   #pauseBtn{padding:8px 10px}
 }
-

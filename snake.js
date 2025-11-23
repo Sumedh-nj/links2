@@ -38,9 +38,9 @@
   // Compute grid configuration based on the available width of the canvas wrapper
   function computeGridConfig() {
     const wrapEl = document.querySelector('.canvas-wrap') || document.body;
-    // available space: use wrapper width (prefer filling horizontal space)
-    const parentWidth = wrapEl.clientWidth || Math.floor(window.innerWidth * 0.90);
-    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.72));
+    // available space: cap for laptops so canvas never overwhelms viewport
+    const parentWidth = Math.min(wrapEl.clientWidth || Math.floor(window.innerWidth * 0.90), 780);
+    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.68));
     const avail = Math.min(parentWidth, availHeight);
 
     // Responsive behavior:
