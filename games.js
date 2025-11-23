@@ -392,7 +392,7 @@ window.initEnergyPong = function() {
     ball.y = canvas.height / 2;
     rally = 0;
     const angle = (Math.random() * 0.4 - 0.2) + (direction < 0 ? Math.PI : 0);
-    const baseSpeed = difficulty === 'hard' ? 4.8 : difficulty === 'easy' ? 4.0 : 4.3;
+    const baseSpeed = 4.3; // common start speed
     const speed = baseSpeed;
     ball.vx = Math.cos(angle) * speed;
     ball.vy = Math.sin(angle) * speed;
@@ -426,6 +426,7 @@ window.initEnergyPong = function() {
   function update(dt) {
     if (state !== 'play') return;
     const scale = Math.min(dt, 1.5);
+    const diffFactor = difficulty === 'hard' ? 1.2 : difficulty === 'easy' ? 0.85 : 1;
 
     // keyboard move
     playerY += inputDir * paddle.speed * 5 * scale;
@@ -441,8 +442,8 @@ window.initEnergyPong = function() {
     const aiCenter = aiY + paddle.h / 2;
     const targetY = clamp(ball.y - paddle.h / 2, 0, canvas.height - paddle.h);
     const diff = targetY - aiY;
-    const aiBase = difficulty === 'hard' ? 4.5 : difficulty === 'easy' ? 3.2 : 4.0;
-    const aiMax = aiBase + Math.min(1.6, rally * 0.07);
+    const aiBase = 3.8 * diffFactor;
+    const aiMax = aiBase + Math.min(2.2 * diffFactor, rally * 0.08 * diffFactor);
     aiY += clamp(diff, -aiMax * scale, aiMax * scale);
 
     // walls
@@ -456,8 +457,8 @@ window.initEnergyPong = function() {
       if (ball.y > playerY && ball.y < playerY + paddle.h) {
         ball.x = 40;
         const offset = (ball.y - (playerY + paddle.h / 2)) / (paddle.h / 2);
-        ball.vx = Math.abs(ball.vx) + 0.08 + rally * 0.035;
-        ball.vy = offset * (3.9 + rally * 0.09);
+        ball.vx = Math.abs(ball.vx) + (0.08 + rally * 0.035) * diffFactor;
+        ball.vy = offset * (3.9 + rally * 0.09) * diffFactor;
         rally++;
       }
     }
@@ -466,8 +467,8 @@ window.initEnergyPong = function() {
       if (ball.y > aiY && ball.y < aiY + paddle.h) {
         ball.x = canvas.width - 40;
         const offset = (ball.y - (aiY + paddle.h / 2)) / (paddle.h / 2);
-        ball.vx = -Math.abs(ball.vx) - 0.08 - rally * 0.028;
-        ball.vy = offset * (3.6 + rally * 0.085);
+        ball.vx = -Math.abs(ball.vx) - (0.08 + rally * 0.028) * diffFactor;
+        ball.vy = offset * (3.6 + rally * 0.085) * diffFactor;
         rally++;
       }
     }
@@ -564,38 +565,52 @@ window.initEnergyPong = function() {
   });
   resetBtn.addEventListener('click', resetMatch);
   window.addEventListener('resize', setCanvasSize);
-  easyBtn.addEventListener('click', () => { difficulty = 'easy'; setCanvasSize(); resetMatch(); });
-  midBtn.addEventListener('click', () => { difficulty = 'medium'; setCanvasSize(); resetMatch(); });
-  hardBtn.addEventListener('click', () => { difficulty = 'hard'; setCanvasSize(); resetMatch(); });
+  function setActiveDifficulty(btn) {
+    [easyBtn, midBtn, hardBtn].forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
 
+  easyBtn.addEventListener('click', () => { difficulty = 'easy'; applyDifficulty(); setCanvasSize(); resetMatch(); setActiveDifficulty(easyBtn); });
+  midBtn.addEventListener('click', () => { difficulty = 'medium'; applyDifficulty(); setCanvasSize(); resetMatch(); setActiveDifficulty(midBtn); });
+  hardBtn.addEventListener('click', () => { difficulty = 'hard'; applyDifficulty(); setCanvasSize(); resetMatch(); setActiveDifficulty(hardBtn); });
+
+  applyDifficulty();
+  setActiveDifficulty(midBtn);
   setCanvasSize();
   resetMatch();
   loop(last);
 };
 
-// ====== Energy Poker ======
-window.initPoker = function() {
-  const mount = document.getElementById('poker-game');
+// ====== Grid Gambit (Energy card duel) ======
+window.initGridGambit = function() {
+  const mount = document.getElementById('gambit-game');
   if (!mount) return;
   mount.innerHTML = '';
+
+  // Stored meta before building HUD
+  let scores = { player: 0, dealer: 0, ties: 0 };
+  let streak = Number(localStorage.getItem('gambit_streak')) || 0;
+  let bestStreak = Number(localStorage.getItem('gambit_best_streak')) || 0;
+  let autoDealTimer = null;
+  let charge = Number(localStorage.getItem('gambit_charge')) || 0;
 
   const shell = document.createElement('div');
   shell.className = 'game-shell';
   shell.innerHTML = `
     <div class="game-hud">
       <div class="hud-group">
-        <div class="hud-pill"><span>You</span><strong id="poker-player-score">0</strong></div>
-        <div class="hud-pill"><span>Dealer</span><strong id="poker-dealer-score">0</strong></div>
-        <div class="hud-pill"><span>Ties</span><strong id="poker-ties">0</strong></div>
-        <div class="hud-pill"><span>Charge</span><strong id="poker-charge">0</strong></div>
-        <div class="hud-pill"><span>Best Streak</span><strong id="poker-best">${bestStreak}</strong></div>
+        <div class="hud-pill"><span>You</span><strong id="gambit-player-score">0</strong></div>
+        <div class="hud-pill"><span>Dealer</span><strong id="gambit-dealer-score">0</strong></div>
+        <div class="hud-pill"><span>Ties</span><strong id="gambit-ties">0</strong></div>
+        <div class="hud-pill"><span>Charge</span><strong id="gambit-charge">0</strong></div>
+        <div class="hud-pill"><span>Best Streak</span><strong id="gambit-best">${bestStreak}</strong></div>
       </div>
       <div class="hud-group">
-        <button class="ghost-btn primary" id="poker-deal">Deal</button>
-        <button class="ghost-btn" id="poker-overcharge">Overcharge (1)</button>
+        <button class="ghost-btn primary" id="gambit-deal">Deal</button>
+        <button class="ghost-btn" id="gambit-overcharge">Overcharge (1)</button>
       </div>
     </div>
-    <div class="poker-table">
+    <div class="gambit-table">
       <div class="hand">
         <div class="hand-label">Your hand</div>
         <div class="card-row" id="player-cards"></div>
@@ -607,23 +622,23 @@ window.initPoker = function() {
         <div class="hand-result" id="dealer-result"></div>
       </div>
     </div>
-    <div class="poker-actions">
-      <span class="poker-tip" id="poker-tip">Pairs, straights, and flushes pay off. Best five-card hand wins.</span>
+    <div class="gambit-actions">
+      <span class="gambit-tip" id="gambit-tip">Pairs, straights, and flushes pay off. Best five-card hand wins.</span>
     </div>
   `;
 
-  const playerEl = shell.querySelector('#poker-player-score');
-  const dealerEl = shell.querySelector('#poker-dealer-score');
-  const tiesEl = shell.querySelector('#poker-ties');
-  const chargeEl = shell.querySelector('#poker-charge');
-  const bestEl = shell.querySelector('#poker-best');
-  const dealBtn = shell.querySelector('#poker-deal');
-  const overchargeBtn = shell.querySelector('#poker-overcharge');
+  const playerEl = shell.querySelector('#gambit-player-score');
+  const dealerEl = shell.querySelector('#gambit-dealer-score');
+  const tiesEl = shell.querySelector('#gambit-ties');
+  const chargeEl = shell.querySelector('#gambit-charge');
+  const bestEl = shell.querySelector('#gambit-best');
+  const dealBtn = shell.querySelector('#gambit-deal');
+  const overchargeBtn = shell.querySelector('#gambit-overcharge');
   const playerCardsEl = shell.querySelector('#player-cards');
   const dealerCardsEl = shell.querySelector('#dealer-cards');
   const playerResultEl = shell.querySelector('#player-result');
   const dealerResultEl = shell.querySelector('#dealer-result');
-  const tipEl = shell.querySelector('#poker-tip');
+  const tipEl = shell.querySelector('#gambit-tip');
 
   mount.appendChild(shell);
 
@@ -631,21 +646,15 @@ window.initPoker = function() {
   const suits = ['♠','♥','♦','♣'];
   const rankValue = { '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14 };
 
-  let scores = { player: 0, dealer: 0, ties: 0 };
-  let streak = Number(localStorage.getItem('poker_streak')) || 0;
-  let bestStreak = Number(localStorage.getItem('poker_best_streak')) || 0;
-  let autoDealTimer = null;
-  let charge = Number(localStorage.getItem('poker_charge')) || 0;
-
   function updateStreak(winDelta) {
     if (winDelta > 0) streak += 1;
     else if (winDelta < 0) streak = 0;
     // ties do not change streak
     if (streak > bestStreak) {
       bestStreak = streak;
-      localStorage.setItem('poker_best_streak', bestStreak);
+      localStorage.setItem('gambit_best_streak', bestStreak);
     }
-    localStorage.setItem('poker_streak', streak);
+    localStorage.setItem('gambit_streak', streak);
   }
 
   function updateMeta() {
@@ -804,7 +813,7 @@ window.initPoker = function() {
     playerEl.textContent = scores.player;
     dealerEl.textContent = scores.dealer;
     tiesEl.textContent = scores.ties;
-    localStorage.setItem('poker_charge', charge);
+    localStorage.setItem('gambit_charge', charge);
     updateMeta();
     scheduleAutoDeal();
   }
@@ -812,7 +821,7 @@ window.initPoker = function() {
   function applyOvercharge() {
     if (charge < 1) return;
     charge -= 1;
-    localStorage.setItem('poker_charge', charge);
+    localStorage.setItem('gambit_charge', charge);
     tipEl.textContent = 'Overcharged: +20% hand strength this round.';
     overchargeBtn.classList.add('active');
     return 1.2;
@@ -835,3 +844,6 @@ window.initSnake = function() {
   const el = document.getElementById('snake-game');
   if (el) el.innerHTML = '<p style="color:#ecfaeb;text-align:center">Snake is available on its own page.</p>';
 };
+
+// Backward compatibility if any page still calls initPoker
+window.initPoker = window.initGridGambit;
