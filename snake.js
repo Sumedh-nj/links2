@@ -38,30 +38,38 @@
   // Compute grid configuration based on the available width of the canvas wrapper
   function computeGridConfig() {
     const wrapEl = document.querySelector('.canvas-wrap') || document.body;
-    // available space: limit to a smaller fraction so the board stays compact
-    const availWidth = Math.max(160, Math.min(wrapEl.clientWidth || window.innerWidth, Math.floor(window.innerWidth * 0.90)));
-    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.60));
-    const avail = Math.min(availWidth, availHeight);
+    // available space: use wrapper width (prefer filling horizontal space)
+    const parentWidth = wrapEl.clientWidth || Math.floor(window.innerWidth * 0.90);
+    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.72));
+    const avail = Math.min(parentWidth, availHeight);
 
-    // Zoom mode: make the map have fewer columns (smaller map) and larger cells
-    const DESIRED_COLS_SMALL = 8; // target small map footprint
-    // Don't exceed a modest local max for columns on larger screens
-    const LOCAL_MAX_COLS = Math.min(MAX_COLS, 16);
-    // Start from desired small cols but don't exceed what the available space can show
-    const estimatedCols = Math.max(MIN_COLS, Math.min(LOCAL_MAX_COLS, Math.floor(avail / MIN_CELL)));
-    // bias towards the smaller desired count when possible
-    const newCols = Math.min(estimatedCols, DESIRED_COLS_SMALL);
+    // Responsive behavior:
+    // - On narrow screens, use a compact fixed-count map (small footprint)
+    // - On medium/large screens, compute columns to fill the available width
+    const MOBILE_BREAKPOINT = 700;
+    let newCols;
+    if (parentWidth < MOBILE_BREAKPOINT) {
+      // small devices: keep small map footprint for easier play
+      const DESIRED_COLS_SMALL = 8;
+      newCols = DESIRED_COLS_SMALL;
+    } else {
+      // larger devices: compute columns so the canvas fills the parent width
+      // Aim for a comfortable target cell size (~36-48px), but allow more columns on wide screens
+      const TARGET_CELL = 40;
+      newCols = Math.max(MIN_COLS, Math.min(MAX_COLS, Math.floor(parentWidth / TARGET_CELL)));
+      // ensure we have at least a modest number of columns
+      newCols = Math.max(newCols, 10);
+    }
     const newRows = newCols; // square grid
 
-    // Compute a generous cell size so snake and cells look larger (zoomed in)
-    // We first compute the base cell size that fits the available space, then increase it
-    const baseCell = Math.floor(avail / newCols);
-    let newCell = Math.floor(baseCell * 1.15); // scale up by 15%
-    // Ensure newCell fits reasonable bounds and does not overflow the available width
+    // Compute cell size to fit parentWidth exactly (integer pixels)
+    let newCell = Math.floor(parentWidth / newCols);
+    // Clamp to reasonable bounds
     newCell = Math.max(MIN_CELL, Math.min(MAX_CELL, newCell));
-    // If increasing causes canvas width to exceed available space, clamp it back
-    if (newCell * newCols > avail) {
-      newCell = Math.floor(avail / newCols);
+    // If the calculated canvas would exceed vertical available space, reduce cell
+    if (newCell * newRows > availHeight) {
+      newCell = Math.floor(availHeight / newRows);
+      newCell = Math.max(MIN_CELL, newCell);
     }
 
     const changed = (newCell !== cellSize) || (newCols !== cols) || (newRows !== rows);
