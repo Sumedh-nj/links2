@@ -29,48 +29,38 @@
   let cols = 12;
   let rows = 12;
   const MIN_CELL = 20; // don't make cells too small
-  const MAX_CELL = 60; // don't make cells too large
-  const MIN_COLS = 8;
-  const MAX_COLS = 24;
+  const MAX_CELL = 78; // allow slightly larger cells so there are fewer squares
+  const MIN_COLS = 6;
+  const MAX_COLS = 12;
   let gridBoundary = { cols, rows };
   let resizeTimer = null;
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
   // Compute grid configuration based on the available width of the canvas wrapper
   function computeGridConfig() {
     const wrapEl = document.querySelector('.canvas-wrap') || document.body;
-    // available space: cap for laptops so canvas never overwhelms viewport
-    const parentWidth = Math.min(wrapEl.clientWidth || Math.floor(window.innerWidth * 0.90), 780);
-    const availHeight = Math.max(160, Math.floor(window.innerHeight * 0.68));
-    const avail = Math.min(parentWidth, availHeight);
+    // available rectangle: use most of the viewport but leave room for header/controls
+    const wrapWidth = wrapEl.clientWidth || Math.floor(window.innerWidth * 0.92);
+    const wrapHeight = Math.max(260, Math.floor(window.innerHeight * 0.82));
+    const availW = Math.max(240, wrapWidth);
+    const availH = Math.max(240, wrapHeight);
 
     // Responsive behavior:
-    // - On narrow screens, use a compact fixed-count map (small footprint)
-    // - On medium/large screens, compute columns to fill the available width
-    const MOBILE_BREAKPOINT = 700;
-    let newCols;
-    if (parentWidth < MOBILE_BREAKPOINT) {
-      // small devices: keep small map footprint for easier play
-      const DESIRED_COLS_SMALL = 8;
-      newCols = DESIRED_COLS_SMALL;
-    } else {
-      // larger devices: compute columns so the canvas fills the parent width
-      // Aim for a comfortable target cell size (~36-48px), but allow more columns on wide screens
-      const TARGET_CELL = 40;
-      newCols = Math.max(MIN_COLS, Math.min(MAX_COLS, Math.floor(parentWidth / TARGET_CELL)));
-      // ensure we have at least a modest number of columns
-      newCols = Math.max(newCols, 10);
-    }
-    const newRows = newCols; // square grid
+    // - On narrow screens, keep a compact grid
+    // - On larger screens, scale independently for width/height so any rectangle fills
+    const MOBILE_BREAKPOINT = 720;
+    const targetCell = wrapWidth < MOBILE_BREAKPOINT ? 48 : 58;
 
-    // Compute cell size to fit parentWidth exactly (integer pixels)
-    let newCell = Math.floor(parentWidth / newCols);
-    // Clamp to reasonable bounds
-    newCell = Math.max(MIN_CELL, Math.min(MAX_CELL, newCell));
-    // If the calculated canvas would exceed vertical available space, reduce cell
-    if (newCell * newRows > availHeight) {
-      newCell = Math.floor(availHeight / newRows);
-      newCell = Math.max(MIN_CELL, newCell);
-    }
+    let newCols = clamp(Math.round(availW / targetCell), MIN_COLS, MAX_COLS);
+    let newRows = clamp(Math.round(availH / targetCell), MIN_COLS, MAX_COLS);
+
+    // Compute cell size to fit the rectangle (integer pixels)
+    let newCellW = Math.max(MIN_CELL, Math.min(MAX_CELL, Math.floor(availW / newCols)));
+    let newCellH = Math.max(MIN_CELL, Math.min(MAX_CELL, Math.floor(availH / newRows)));
+    let newCell = Math.min(newCellW, newCellH);
+    // Ensure canvas fits inside both dimensions
+    while ((newCell * newCols) > availW && newCols > MIN_COLS) newCols--;
+    while ((newCell * newRows) > availH && newRows > MIN_COLS) newRows--;
 
     const changed = (newCell !== cellSize) || (newCols !== cols) || (newRows !== rows);
     cellSize = newCell;
@@ -337,8 +327,8 @@
   function drawGrid() {
     ctx.save();
     // subtle greenish lines, thin and crisp
-    ctx.strokeStyle = 'rgba(106,214,92,0.08)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(106,214,92,0.12)';
+    ctx.lineWidth = Math.max(1, Math.floor(cellSize * 0.03));
     ctx.beginPath();
     // vertical lines
     for (let x = 0; x <= cols; x++) {
@@ -373,12 +363,12 @@
     const py = y * cellSize + cellSize/2;
     ctx.beginPath();
     // Attractive smooth green circle without text
-    const grad = ctx.createRadialGradient(px - cellSize*0.12, py - cellSize*0.12, cellSize*0.05, px, py, cellSize*0.42);
+    const grad = ctx.createRadialGradient(px - cellSize*0.12, py - cellSize*0.12, cellSize*0.05, px, py, cellSize*0.4);
     grad.addColorStop(0, '#9ff69a');
     grad.addColorStop(0.4, '#45cc33');
     grad.addColorStop(1, '#2a7a1e');
     ctx.fillStyle = grad;
-    ctx.arc(px, py, cellSize*0.35, 0, Math.PI*2);
+    ctx.arc(px, py, cellSize*0.38, 0, Math.PI*2);
     ctx.fill();
     // subtle highlight
     ctx.beginPath();
@@ -396,8 +386,8 @@
     ctx.fillStyle = g;
     ctx.fillRect(px+2, py+2, cellSize-4, cellSize-4);
     // small inner shine
-    ctx.fillStyle = `rgba(255,255,255,${0.06*intensity})`;
-    ctx.fillRect(px+3, py+3, cellSize-6, cellSize-10);
+    ctx.fillStyle = `rgba(255,255,255,${0.08*intensity})`;
+    ctx.fillRect(px+4, py+4, cellSize-8, cellSize-8);
   }
 
   // Input handling
