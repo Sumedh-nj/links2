@@ -798,276 +798,612 @@ window.initEnergyPong = function() {
   loop(last);
 };
 
-// ====== Grid Gambit (Energy card duel) ======
+// ====== Grid Gambit (Color Guessing Game) ======
 window.initGridGambit = function() {
   const mount = document.getElementById('gambit-game');
   if (!mount) return;
   mount.innerHTML = '';
 
-  // Stored meta before building HUD
-  let scores = { player: 0, dealer: 0, ties: 0 };
-  let streak = Number(localStorage.getItem('gambit_streak')) || 0;
-  let bestStreak = Number(localStorage.getItem('gambit_best_streak')) || 0;
-  let autoDealTimer = null;
-  let charge = Number(localStorage.getItem('gambit_charge')) || 0;
+  let score = Number(localStorage.getItem('gambit_score')) || 0;
+  let streak = 0;
+  let bestStreak = 0; // Don't load from storage to fix the bug
+  let safeScore = 0; // half of your score that you can't lose
+  let totalGuesses = 0;
+  let correctGuesses = 0;
+  let isDoubleOrNothingActive = false;
+  let donCountdown = -1; // Countdown to next double-or-nothing
+  let chatMessages = [];
+  let godUser = null;
+  let godUserClimbTimer = null;
+  
+  // Realistic usernames
+  const usernamePool = [
+    'xXDarkLord67Xx', 'ProGamer420', 'NoobMaster69', 'ShadowHunter88',
+    'CryptoKing99', 'MemeLord42', 'TryHard360', 'LuckyPlayer777',
+    'EpicGamer2024', 'SkillIssue404', 'YoloSwag123', 'NinjaPro56',
+    'GamerGirl33', 'MLGPlayer91', 'SniperElite47', 'QuickScope22',
+    'RageQuit101', 'EZClap999', 'HighRoller85', 'BigWin247'
+  ];
+  
+  // Annoying chat messages - massive variety
+  const chatPool = [
+    'OMG SO LUCKY!!!', 'ez win lol', 'cant believe i won again',
+    'this game is rigged for me haha', 'streak of 15 lets gooo',
+    'yall are trash im up 500', 'just won 800 points lmaooo',
+    'im on fire today 🔥🔥🔥', 'too easy fr', 'gg ez',
+    'cant stop winning 😂', 'best player here ngl', 'yall losing?',
+    'doubled my score twice!', 'luck is on my side today',
+    'how do i keep winning', 'another W for me', 'im built different',
+    'green gang 💚', 'blue crew 💙', 'almost at 1k points',
+    'noobs everywhere lol', 'skill gap is crazy', 'just passed 600 score',
+    'my lucky day fr fr', 'undefeated rn', 'god mode activated',
+    'anyone else struggling? just me winning?', 'wrong color again smh',
+    'finally hit 400!', 'on a 8 streak rn', 'that was close',
+    'this is addicting ngl', 'one more win...', 'so close to beating leader',
+    'lets goooo', 'W after W', 'no losses today', 'on a hot streak',
+    'blue never fails me', 'green is my color', 'called it!',
+    'knew it was blue', 'predicted that', 'easy guess',
+    'told yall green', 'clutch guess right there', 'another correct pick',
+    'im unstoppable rn', 'cant lose if i tried', 'too good at this',
+    'where the competition at?', 'yall even trying?', 'make it harder devs',
+    'this game needs hard mode', 'way too easy for me', 'born for this',
+    'guessing games are my thing', 'color master reporting', 'professional guesser',
+    'just hit my high score!', 'new personal best', 'cant top this score',
+    'almost doubled my points', 'safe score going crazy', 'accuracy at 90%',
+    'never guessed wrong today', 'perfect streak incoming', '10 in a row baby',
+    'luckiest player alive', 'the odds love me', 'rng is my friend',
+    'how is this even possible', 'probability gods favor me', 'statistically blessed',
+    'yall sleeping on blue', 'green supremacy', 'blue is meta',
+    'green gang rise up', 'team blue forever', 'color wars',
+    'wrong again lol', 'oops missed that one', 'that hurt my streak',
+    'back to zero streak sad', 'lost my combo', 'streak broken gg',
+    'gonna make a comeback', 'just a warmup loss', 'fluke guess',
+    'rematch with the wheel', 'spin again pls', 'double or nothing time',
+    'risk it for the biscuit', 'yolo mode activated', 'all in baby',
+    'playing it safe', 'not risking it', 'smart plays only',
+    'calculated risk', 'gotta secure the bag', 'profit secured',
+    'leader board incoming', 'top 3 soon', 'bout to be #1',
+    'climbing fast', 'watch me rise', 'overtaking everyone',
+    'they cant catch me', 'too far ahead', 'lead is safe',
+    'who even is #1 rn', 'whats the top score?', 'leader seems afk',
+    'ima pass first place', 'first place = me soon', 'crown mine',
+    'GG to second place', 'yall fighting for 2nd', 'race for silver',
+    'close game ngl', 'sweating bullets here', 'intense round',
+    'heart racing rn', 'palms sweaty', 'nail biter moment',
+    'needed that win bad', 'clutch or kick', 'pressure is real',
+    'vibing with green today', 'blue hitting different', 'color sense tingling',
+    'my gut says green', 'feeling blue vibes', 'intuition on point',
+    'trust the process', 'manifestation working', 'positive energy only'
+  ];
+  
+  const usedMessages = new Map(); // Track recent messages per user
+  const globalUsedMessages = []; // Track last 5 messages globally
+  
+  let leaderboard = [];
+  
+  // Initialize fake leaderboard with realistic scores
+  function initLeaderboard() {
+    leaderboard = [];
+    for (let i = 0; i < 10; i++) {
+      leaderboard.push({
+        name: usernamePool[Math.floor(Math.random() * usernamePool.length)],
+        score: Math.floor(Math.random() * 600) + 100, // Max ~700
+        trend: 0
+      });
+    }
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Select a god user who will dominate
+    const godIndex = Math.floor(Math.random() * 3) + 5; // Pick from middle-low players
+    if (leaderboard[godIndex]) {
+      godUser = leaderboard[godIndex].name;
+    }
+  }
+  
+  initLeaderboard();
 
   const shell = document.createElement('div');
   shell.className = 'game-shell';
   shell.innerHTML = `
     <div class="game-hud">
       <div class="hud-group">
-        <div class="hud-pill"><span>You</span><strong id="gambit-player-score">0</strong></div>
-        <div class="hud-pill"><span>Dealer</span><strong id="gambit-dealer-score">0</strong></div>
-        <div class="hud-pill"><span>Ties</span><strong id="gambit-ties">0</strong></div>
-        <div class="hud-pill" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);"><span>⚡ Charge</span><strong id="gambit-charge">0</strong></div>
-        <div class="hud-pill"><span>🏆 Best Streak</span><strong id="gambit-best">${bestStreak}</strong></div>
+        <div class="hud-pill" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff;">
+          <span>💰 Score</span><strong id="gambit-score">${score}</strong>
+        </div>
+        <div class="hud-pill">
+          <span>🔥 Streak</span><strong id="gambit-streak">0</strong>
+        </div>
+        <div class="hud-pill">
+          <span>🏆 Best</span><strong id="gambit-best">0</strong>
+        </div>
+        <div class="hud-pill" style="background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: #000;">
+          <span>🛡️ Safe</span><strong id="gambit-safe">0</strong>
+        </div>
       </div>
       <div class="hud-group">
-        <button class="ghost-btn primary" id="gambit-deal">Deal Cards</button>
-        <button class="ghost-btn" id="gambit-overcharge" style="position: relative;">⚡ Overcharge (costs 1)</button>
+        <div class="hud-pill" style="font-size: 0.85rem;">
+          <span>Accuracy</span><strong id="gambit-accuracy">0%</strong>
+        </div>
+        <div class="hud-pill" id="don-countdown-pill" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; display: none;">
+          <span>🎰 Next Event</span><strong id="don-countdown">3</strong>
+        </div>
       </div>
     </div>
-    <div class="gambit-table">
-      <div class="hand">
-        <div class="hand-label">Your hand</div>
-        <div class="card-row" id="player-cards"></div>
-        <div class="hand-result" id="player-result"></div>
+    
+    <div class="gambit-game-area">
+      <div class="gambit-main">
+        <div class="gambit-question">
+          <h2 id="gambit-question-text">Which color will appear?</h2>
+          <div class="gambit-multiplier" id="gambit-multiplier">+10 points</div>
+        </div>
+        
+        <div class="gambit-color-display" id="gambit-color-display">
+          <div class="gambit-mystery">?</div>
+        </div>
+        
+        <div class="gambit-choices">
+          <button class="gambit-choice blue" id="choice-blue">
+            <span class="choice-icon">💙</span>
+            <span class="choice-label">BLUE</span>
+          </button>
+          <button class="gambit-choice green" id="choice-green">
+            <span class="choice-icon">💚</span>
+            <span class="choice-label">GREEN</span>
+          </button>
+        </div>
+        
+        <div class="gambit-message" id="gambit-message"></div>
       </div>
-      <div class="hand">
-        <div class="hand-label">Dealer</div>
-        <div class="card-row" id="dealer-cards"></div>
-        <div class="hand-result" id="dealer-result"></div>
+      
+      <div class="gambit-sidebar">
+        <div class="gambit-leaderboard">
+          <h3>🏆 Live Leaderboard</h3>
+          <div class="leaderboard-list" id="leaderboard-list"></div>
+        </div>
+        <div class="gambit-chat">
+          <h3>💬 Live Chat</h3>
+          <div class="chat-messages" id="chat-messages"></div>
+        </div>
       </div>
     </div>
-    <div class="gambit-actions">
-      <span class="gambit-tip" id="gambit-tip">Win hands to build charge. Use Overcharge BEFORE dealing to boost your next hand by +20%. Pairs, straights, and flushes score higher.</span>
+    
+    <div class="double-or-nothing-overlay" id="don-overlay" style="display: none;">
+      <div class="don-modal">
+        <div class="don-header">
+          <h2>🎰 DOUBLE OR NOTHING!</h2>
+          <p>Risk <strong>ALL ${score} points</strong> for a chance to <strong>DOUBLE</strong> them!</p>
+          <div class="don-timer" id="don-timer">Time to decide: <strong>10s</strong></div>
+        </div>
+        <div class="don-wheel-container">
+          <div class="don-pointer">▼</div>
+          <canvas id="don-wheel" width="300" height="300"></canvas>
+        </div>
+        <div class="don-result" id="don-result"></div>
+        <div class="don-buttons" id="don-buttons">
+          <button class="don-btn accept" id="don-accept">
+            <span class="btn-icon">🎰</span>
+            <span class="btn-text">SPIN IT!</span>
+          </button>
+          <button class="don-btn decline" id="don-decline">
+            <span class="btn-icon">🛡️</span>
+            <span class="btn-text">Play Safe</span>
+          </button>
+        </div>
+      </div>
     </div>
   `;
 
-  const playerEl = shell.querySelector('#gambit-player-score');
-  const dealerEl = shell.querySelector('#gambit-dealer-score');
-  const tiesEl = shell.querySelector('#gambit-ties');
-  const chargeEl = shell.querySelector('#gambit-charge');
-  const bestEl = shell.querySelector('#gambit-best');
-  const dealBtn = shell.querySelector('#gambit-deal');
-  const overchargeBtn = shell.querySelector('#gambit-overcharge');
-  const playerCardsEl = shell.querySelector('#player-cards');
-  const dealerCardsEl = shell.querySelector('#dealer-cards');
-  const playerResultEl = shell.querySelector('#player-result');
-  const dealerResultEl = shell.querySelector('#dealer-result');
-  const tipEl = shell.querySelector('#gambit-tip');
-
   mount.appendChild(shell);
 
-  const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-  const suits = ['♠','♥','♦','♣'];
-  const rankValue = { '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14 };
+  const scoreEl = shell.querySelector('#gambit-score');
+  const streakEl = shell.querySelector('#gambit-streak');
+  const bestEl = shell.querySelector('#gambit-best');
+  const safeEl = shell.querySelector('#gambit-safe');
+  const accuracyEl = shell.querySelector('#gambit-accuracy');
+  const questionEl = shell.querySelector('#gambit-question-text');
+  const multiplierEl = shell.querySelector('#gambit-multiplier');
+  const colorDisplayEl = shell.querySelector('#gambit-color-display');
+  const messageEl = shell.querySelector('#gambit-message');
+  const blueBtn = shell.querySelector('#choice-blue');
+  const greenBtn = shell.querySelector('#choice-green');
+  const leaderboardEl = shell.querySelector('#leaderboard-list');
+  const chatEl = shell.querySelector('#chat-messages');
+  const donOverlay = shell.querySelector('#don-overlay');
+  const donWheel = shell.querySelector('#don-wheel');
+  const donResult = shell.querySelector('#don-result');
+  const donButtons = shell.querySelector('#don-buttons');
+  const donAccept = shell.querySelector('#don-accept');
+  const donDecline = shell.querySelector('#don-decline');
+  const donCountdownEl = shell.querySelector('#don-countdown');
+  const donCountdownPill = shell.querySelector('#don-countdown-pill');
+  const donTimer = shell.querySelector('#don-timer');
 
-  function updateStreak(winDelta) {
-    if (winDelta > 0) streak += 1;
-    else if (winDelta < 0) streak = 0;
-    // ties do not change streak
-    if (streak > bestStreak) {
-      bestStreak = streak;
-      localStorage.setItem('gambit_best_streak', bestStreak);
-    }
-    localStorage.setItem('gambit_streak', streak);
-  }
+  let currentColor = null;
+  let isAnimating = false;
+  let donTimerInterval = null;
 
-  function updateMeta() {
-    chargeEl.textContent = charge;
+  function updateDisplay() {
+    scoreEl.textContent = score;
+    streakEl.textContent = streak;
     bestEl.textContent = bestStreak;
-    overchargeBtn.disabled = charge < 1;
-  }
-
-  function buildDeck() {
-    const deck = [];
-    for (const r of ranks) for (const s of suits) deck.push({ rank: r, suit: s });
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    return deck;
-  }
-
-  function renderHand(container, hand) {
-    container.innerHTML = '';
-    hand.forEach((card, index) => {
-      const cardEl = document.createElement('div');
-      const red = card.suit === '♥' || card.suit === '♦';
-      cardEl.className = 'card' + (red ? ' red' : '');
-      cardEl.style.animation = `cardDeal 0.4s ease-out ${index * 0.08}s both`;
-      cardEl.innerHTML = `
-        <div class="card-shine"></div>
-        <div class="rank">${card.rank}</div>
-        <div class="suit">${card.suit}</div>
-        <div class="rank bottom">${card.rank}</div>
-      `;
-      container.appendChild(cardEl);
-    });
-  }
-
-  function detectStraight(values) {
-    const uniq = Array.from(new Set(values)).sort((a,b) => a - b);
-    if (uniq.length < 5) return false;
-    // Wheel straight (A-2-3-4-5)
-    if (uniq.join(',') === '2,3,4,5,14') return 5;
-    const first = uniq[0];
-    const isStraight = uniq.every((v, i) => v === first + i);
-    return isStraight ? uniq[uniq.length - 1] : false;
-  }
-
-  function evaluateHand(hand) {
-    const counts = {};
-    const suitsCount = {};
-    const values = hand.map(c => rankValue[c.rank]).sort((a,b) => b - a);
-    hand.forEach(c => {
-      counts[c.rank] = (counts[c.rank] || 0) + 1;
-      suitsCount[c.suit] = (suitsCount[c.suit] || 0) + 1;
-    });
-    const flushSuit = Object.keys(suitsCount).find(s => suitsCount[s] === 5);
-    const isFlush = Boolean(flushSuit);
-    const straightHigh = detectStraight(values.slice().sort((a,b) => a - b));
-    const countEntries = Object.entries(counts).sort((a, b) => {
-      const diff = b[1] - a[1];
-      if (diff !== 0) return diff;
-      return rankValue[b[0]] - rankValue[a[0]];
-    });
-
-    const valuesDesc = values.slice().sort((a,b) => b - a);
-    let score = 0;
-    let name = 'High Card';
-    let tiebreak = valuesDesc.slice();
-
-    const bestCount = countEntries[0][1];
-    const secondCount = countEntries[1] ? countEntries[1][1] : 0;
-
-    if (straightHigh && isFlush) {
-      score = 8; name = 'Straight Flush'; tiebreak = [straightHigh];
-    } else if (bestCount === 4) {
-      const fourRank = rankValue[countEntries[0][0]];
-      const kicker = valuesDesc.find(v => v !== fourRank) || fourRank;
-      score = 7; name = 'Four of a Kind'; tiebreak = [fourRank, kicker];
-    } else if (bestCount === 3 && secondCount === 2) {
-      const threeVal = rankValue[countEntries[0][0]];
-      const pairVal = rankValue[countEntries[1][0]];
-      score = 6; name = 'Full House'; tiebreak = [threeVal, pairVal];
-    } else if (isFlush) {
-      score = 5; name = 'Flush'; tiebreak = valuesDesc;
-    } else if (straightHigh) {
-      score = 4; name = 'Straight'; tiebreak = [straightHigh];
-    } else if (bestCount === 3) {
-      const threeVal = rankValue[countEntries[0][0]];
-      const kickers = valuesDesc.filter(v => v !== threeVal);
-      score = 3; name = 'Three of a Kind'; tiebreak = [threeVal, ...kickers];
-    } else if (bestCount === 2 && secondCount === 2) {
-      const pairVals = countEntries.filter(e => e[1] === 2).map(e => rankValue[e[0]]).sort((a,b)=>b-a);
-      const kicker = valuesDesc.find(v => !pairVals.includes(v)) || pairVals[0];
-      score = 2; name = 'Two Pair'; tiebreak = [...pairVals, kicker];
-    } else if (bestCount === 2) {
-      const pairVal = rankValue[countEntries[0][0]];
-      const kickers = valuesDesc.filter(v => v !== pairVal);
-      score = 1; name = 'One Pair'; tiebreak = [pairVal, ...kickers];
-    }
-
-    return { score, name, tiebreak };
-  }
-
-  function compareHands(a, b) {
-    if (a.score !== b.score) return a.score - b.score;
-    const len = Math.max(a.tiebreak.length, b.tiebreak.length);
-    for (let i = 0; i < len; i++) {
-      const diff = (a.tiebreak[i] || 0) - (b.tiebreak[i] || 0);
-      if (diff !== 0) return diff;
-    }
-    return 0;
-  }
-
-  function scheduleAutoDeal() {
-    if (autoDealTimer) clearTimeout(autoDealTimer);
-    autoDealTimer = setTimeout(() => deal(), 1200);
-  }
-
-  function handPower(evaluation) {
-    const kickerSum = evaluation.tiebreak.reduce((a,b)=>a+b,0);
-    return evaluation.score * 1000 + kickerSum;
-  }
-
-  function deal() {
-    if (autoDealTimer) { clearTimeout(autoDealTimer); autoDealTimer = null; }
-    overchargeBtn.dataset.boost = '1';
-    const deck = buildDeck();
-    const playerHand = deck.slice(0, 5);
-    const dealerHand = deck.slice(5, 10);
-    const playerEval = evaluateHand(playerHand);
-    const dealerEval = evaluateHand(dealerHand);
-    const boost = charge > 0 && overchargeBtn.classList.contains('active') ? 1.2 : 1;
-    overchargeBtn.classList.remove('active');
-    overchargeBtn.textContent = '⚡ Overcharge (costs 1)';
-    overchargeBtn.style.background = '';
-    overchargeBtn.style.color = '';
-    // Compare numeric power with optional boost
-    const playerPower = handPower(playerEval) * boost;
-    const dealerPower = handPower(dealerEval);
-    let result = 0;
-    if (playerPower > dealerPower) result = 1;
-    else if (playerPower < dealerPower) result = -1;
-
-    renderHand(playerCardsEl, playerHand);
-    renderHand(dealerCardsEl, dealerHand);
-    playerResultEl.textContent = playerEval.name;
-    dealerResultEl.textContent = dealerEval.name;
-
-    if (result > 0) {
-      scores.player++;
-      charge = Math.min(9, charge + 1); // cap charge to keep choices tight
-      tipEl.textContent = `🎉 You win with ${playerEval.name}! Streak: ${streak + 1}. ⚡ Charge +1 (now ${charge}).`;
-      updateStreak(1);
-    } else if (result < 0) {
-      scores.dealer++;
-      // Don't lose charge on loss, only on use
-      tipEl.textContent = `Dealer wins with ${dealerEval.name}. Your streak resets, but you keep your charge.`;
-      updateStreak(-1);
+    safeEl.textContent = safeScore;
+    
+    const accuracy = totalGuesses > 0 ? Math.round((correctGuesses / totalGuesses) * 100) : 0;
+    accuracyEl.textContent = accuracy + '%';
+    
+    // Update countdown display
+    if (donCountdown >= 0 && donCountdown <= 3) {
+      donCountdownPill.style.display = 'flex';
+      donCountdownEl.textContent = donCountdown;
+      if (donCountdown === 0) {
+        donCountdownEl.textContent = 'NOW!';
+      }
     } else {
-      scores.ties++;
-      tipEl.textContent = `Tie! Both had ${playerEval.name}. No charge change.`;
+      donCountdownPill.style.display = 'none';
     }
-    playerEl.textContent = scores.player;
-    dealerEl.textContent = scores.dealer;
-    tiesEl.textContent = scores.ties;
-    localStorage.setItem('gambit_charge', charge);
-    updateMeta();
-    scheduleAutoDeal();
+    
+    // Calculate next points
+    const basePoints = 10;
+    const nextPoints = streak >= 10 ? basePoints * Math.pow(2, Math.floor(streak / 2)) : basePoints * (streak + 1);
+    multiplierEl.textContent = `+${nextPoints} points`;
+    
+    localStorage.setItem('gambit_score', score);
+    localStorage.setItem('gambit_best_streak', bestStreak);
   }
 
-  function applyOvercharge() {
-    if (charge < 1) return;
-    charge -= 1;
-    localStorage.setItem('gambit_charge', charge);
-    tipEl.textContent = '⚡ OVERCHARGED! Your next hand gets +20% boost. Deal now to use it!';
-    overchargeBtn.classList.add('active');
-    overchargeBtn.textContent = '⚡ ACTIVE!';
-    overchargeBtn.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)';
-    overchargeBtn.style.color = '#000';
-    return 1.2;
+  function addChatMessage(username, message) {
+    // Prevent same user from sending same message consecutively
+    const lastMsg = usedMessages.get(username);
+    
+    // Get available messages (not used by this user recently, not in last 8 global messages)
+    let availableMessages = chatPool.filter(m => 
+      m !== lastMsg && !globalUsedMessages.includes(m)
+    );
+    
+    // If we filtered out everything, just avoid the last message
+    if (availableMessages.length === 0) {
+      availableMessages = chatPool.filter(m => m !== lastMsg);
+    }
+    
+    // If still nothing, use full pool
+    if (availableMessages.length === 0) {
+      availableMessages = chatPool;
+    }
+    
+    // Pick a random message from available ones
+    message = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    
+    usedMessages.set(username, message);
+    globalUsedMessages.push(message);
+    if (globalUsedMessages.length > 8) globalUsedMessages.shift(); // Increased from 5 to 8
+    
+    chatMessages.unshift({ username, message, time: Date.now() });
+    if (chatMessages.length > 8) chatMessages = chatMessages.slice(0, 8);
+    
+    chatEl.innerHTML = chatMessages.map(msg => `
+      <div class="chat-item">
+        <span class="chat-user">${msg.username}:</span>
+        <span class="chat-text">${msg.message}</span>
+      </div>
+    `).join('');
+  }
+  
+  function updateLeaderboard() {
+    // Animate fake players
+    leaderboard.forEach(player => {
+      if (player.name === godUser && Math.random() > 0.3) {
+        // God user climbs aggressively
+        const change = Math.floor(Math.random() * 150) + 100;
+        player.score += change;
+        player.trend = change;
+        if (Math.random() > 0.6) {
+          const msg = chatPool[Math.floor(Math.random() * chatPool.length)];
+          addChatMessage(godUser, msg);
+        }
+      } else if (Math.random() > 0.75) {
+        const change = Math.floor(Math.random() * 80) + 20;
+        player.score += change;
+        player.trend = change;
+        if (Math.random() > 0.85) {
+          const msg = chatPool[Math.floor(Math.random() * chatPool.length)];
+          addChatMessage(player.name, msg);
+        }
+      } else {
+        player.trend = 0;
+      }
+    });
+    
+    // Add player to leaderboard if not there
+    const playerIndex = leaderboard.findIndex(p => p.name === 'YOU');
+    if (playerIndex === -1 && score > 0) {
+      leaderboard.push({ name: 'YOU', score: score, trend: 0, isPlayer: true });
+    } else if (playerIndex !== -1) {
+      const oldScore = leaderboard[playerIndex].score;
+      leaderboard[playerIndex].score = score;
+      leaderboard[playerIndex].trend = score - oldScore;
+    }
+    
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Render leaderboard
+    leaderboardEl.innerHTML = leaderboard.slice(0, 10).map((player, i) => {
+      const trendIcon = player.trend > 0 ? '📈' : '';
+      const trendText = player.trend > 0 ? `+${player.trend}` : '';
+      const highlight = player.isPlayer ? 'style="background: rgba(255,215,0,0.2); font-weight: bold;"' : '';
+      return `
+        <div class="leaderboard-item" ${highlight}>
+          <span class="rank">#${i + 1}</span>
+          <span class="name">${player.name}</span>
+          <span class="score">${player.score.toLocaleString()} ${trendIcon}</span>
+          ${trendText ? `<span class="trend">${trendText}</span>` : ''}
+        </div>
+      `;
+    }).join('');
   }
 
-  overchargeBtn.addEventListener('click', () => {
-    if (charge < 1) { 
-      tipEl.textContent = '⚠️ Not enough charge! Win hands to build up charge first.';
-      return; 
+  function nextRound() {
+    if (isAnimating) return;
+    
+    currentColor = null; // Will be set when player makes guess
+    colorDisplayEl.innerHTML = '<div class="gambit-mystery">?</div>';
+    colorDisplayEl.className = 'gambit-color-display';
+    messageEl.textContent = '';
+    messageEl.className = 'gambit-message';
+    
+    blueBtn.disabled = false;
+    greenBtn.disabled = false;
+    blueBtn.classList.remove('correct', 'wrong');
+    greenBtn.classList.remove('correct', 'wrong');
+  }
+
+  function makeGuess(guess) {
+    if (isAnimating) return;
+    isAnimating = true;
+    totalGuesses++;
+    
+    blueBtn.disabled = true;
+    greenBtn.disabled = true;
+    
+    // 60% chance player's guess is correct, 40% wrong
+    const shouldWin = Math.random() < 0.6;
+    currentColor = shouldWin ? guess : (guess === 'blue' ? 'green' : 'blue');
+    
+    // Animate reveal
+    colorDisplayEl.classList.add('revealing');
+    
+    setTimeout(() => {
+      const colorClass = currentColor === 'blue' ? 'show-blue' : 'show-green';
+      colorDisplayEl.className = `gambit-color-display ${colorClass}`;
+      colorDisplayEl.innerHTML = `<div class="gambit-color-circle"></div>`;
+      
+      const correct = guess === currentColor;
+      
+      if (correct) {
+        correctGuesses++;
+        streak++;
+        
+        // Calculate points with doubling after streak 10
+        const basePoints = 10;
+        let points;
+        if (streak >= 10) {
+          points = basePoints * Math.pow(2, Math.floor(streak / 2));
+        } else {
+          points = basePoints * streak;
+        }
+        
+        score += points;
+        
+        // Update safe score at certain thresholds - every 3 correct
+        if (streak % 3 === 0 && streak > 0) {
+          safeScore = Math.floor(score / 2);
+          messageEl.innerHTML = `🎉 Correct! +${points} points<br><span style="color: #4ade80;">🛡️ Safe score updated to ${safeScore}!</span>`;
+        } else {
+          messageEl.textContent = `✅ Correct! +${points} points`;
+        }
+        messageEl.className = 'gambit-message correct';
+        
+        if (streak > bestStreak) {
+          bestStreak = streak;
+        }
+        
+        const btn = guess === 'blue' ? blueBtn : greenBtn;
+        btn.classList.add('correct');
+        
+      } else {
+        // Wrong answer - lose points down to safe score
+        const pointsLost = Math.max(0, score - safeScore);
+        score = safeScore;
+        streak = 0;
+        
+        messageEl.innerHTML = `❌ Wrong! The color was ${currentColor.toUpperCase()}<br><span style="color: #ef4444;">Lost ${pointsLost} points (saved by safe score)</span>`;
+        messageEl.className = 'gambit-message wrong';
+        
+        const btn = guess === 'blue' ? blueBtn : greenBtn;
+        btn.classList.add('wrong');
+      }
+      
+      updateDisplay();
+      updateLeaderboard();
+      
+      setTimeout(() => {
+        isAnimating = false;
+        
+        // Countdown and trigger double-or-nothing (starts after 10 points)
+        if (correct && score >= 10 && !isDoubleOrNothingActive) {
+          if (donCountdown < 0) {
+            // Start countdown (triggers in 8-12 correct guesses = ~20-30 seconds)
+            donCountdown = Math.floor(Math.random() * 5) + 8;
+          } else if (donCountdown > 0) {
+            donCountdown--;
+            updateDisplay();
+          }
+          
+          if (donCountdown === 0) {
+            donCountdown = -1; // Reset
+            showDoubleOrNothing();
+            return;
+          }
+        }
+        
+        nextRound();
+      }, 1500); // Reduced from 2500ms
+      
+    }, 600);
+  }
+  
+  function showDoubleOrNothing() {
+    isDoubleOrNothingActive = true;
+    donCountdown = -1;
+    updateDisplay();
+    donOverlay.style.display = 'flex';
+    donResult.textContent = '';
+    donButtons.style.display = 'flex';
+    
+    // Update score in the message
+    const headerP = shell.querySelector('.don-header p');
+    if (headerP) {
+      headerP.innerHTML = `Risk <strong>ALL ${score} points</strong> for a chance to <strong>DOUBLE</strong> them!`;
     }
-    if (overchargeBtn.classList.contains('active')) {
-      tipEl.textContent = '⚡ Overcharge already active! Deal cards to use the boost.';
+    
+    // Start 10 second countdown timer
+    let timeLeft = 10;
+    donTimer.innerHTML = `Time to decide: <strong>${timeLeft}s</strong>`;
+    
+    if (donTimerInterval) clearInterval(donTimerInterval);
+    donTimerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft > 0) {
+        donTimer.innerHTML = `Time to decide: <strong>${timeLeft}s</strong>`;
+        if (timeLeft <= 3) {
+          donTimer.style.color = '#ef4444';
+          donTimer.style.animation = 'pulse 0.5s ease-in-out infinite';
+        }
+      } else {
+        clearInterval(donTimerInterval);
+        donTimer.innerHTML = '<strong style="color: #ef4444;">Time\'s up! Playing safe...</strong>';
+        setTimeout(() => spinWheel(false), 1000);
+      }
+    }, 1000);
+  }
+  
+  function spinWheel(accept) {
+    if (donTimerInterval) {
+      clearInterval(donTimerInterval);
+      donTimerInterval = null;
+    }
+    
+    if (!accept) {
+      donOverlay.style.display = 'none';
+      isDoubleOrNothingActive = false;
+      donCountdown = -1;
+      nextRound();
       return;
     }
-    applyOvercharge();
-    updateMeta();
-  });
+    
+    donButtons.style.display = 'none';
+    const ctx = donWheel.getContext('2d');
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+    
+    let rotation = 0;
+    const spinDuration = 3000;
+    const startTime = Date.now();
+    const spins = 5 + Math.random() * 3;
+    const winChance = 0.48; // 48% win
+    const willWin = Math.random() < winChance;
+    const targetRotation = spins * 360 + (willWin ? 90 : 270); // Land on green or red
+    
+    function animate() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / spinDuration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // Ease out
+      
+      rotation = targetRotation * eased;
+      
+      ctx.clearRect(0, 0, 300, 300);
+      
+      // Draw wheel segments
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 
+          (rotation + i * 90) * Math.PI / 180,
+          (rotation + (i + 1) * 90) * Math.PI / 180);
+        ctx.lineTo(centerX, centerY);
+        ctx.fillStyle = i % 2 === 0 ? '#10b981' : '#ef4444'; // Green or Red
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      
+      // Draw center circle
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fill();
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Show result
+        if (willWin) {
+          score *= 2;
+          donResult.innerHTML = '<span style="color: #10b981; font-size: 1.5rem; font-weight: 800;">🎉 DOUBLED! 🎉</span>';
+          addChatMessage('YOU', 'OMG I DOUBLED MY SCORE!!!');
+        } else {
+          score = 0;
+          safeScore = 0;
+          streak = 0;
+          donResult.innerHTML = '<span style="color: #ef4444; font-size: 1.5rem; font-weight: 800;">💔 LOST IT ALL 💔</span>';
+        }
+        updateDisplay();
+        updateLeaderboard();
+        
+        setTimeout(() => {
+          donOverlay.style.display = 'none';
+          isDoubleOrNothingActive = false;
+          donCountdown = -1;
+          donTimer.style.color = '';
+          donTimer.style.animation = '';
+          if (donTimerInterval) {
+            clearInterval(donTimerInterval);
+            donTimerInterval = null;
+          }
+          updateDisplay();
+          nextRound();
+        }, 2000);
+      }
+    }
+    
+    animate();
+  }
 
-  dealBtn.addEventListener('click', () => { deal(); });
-  updateMeta();
-  deal();
+  blueBtn.addEventListener('click', () => makeGuess('blue'));
+  greenBtn.addEventListener('click', () => makeGuess('green'));
+  donAccept.addEventListener('click', () => spinWheel(true));
+  donDecline.addEventListener('click', () => spinWheel(false));
+
+  updateDisplay();
+  updateLeaderboard();
+  nextRound();
+  
+  // Update leaderboard periodically
+  setInterval(updateLeaderboard, 2500);
+  
+  // Add random chat messages with more spacing
+  setInterval(() => {
+    if (Math.random() > 0.6) { // Reduced from 0.7 to make it more active
+      const randomPlayer = leaderboard[Math.floor(Math.random() * leaderboard.length)];
+      if (randomPlayer && randomPlayer.name !== 'YOU') {
+        const msg = chatPool[Math.floor(Math.random() * chatPool.length)];
+        addChatMessage(randomPlayer.name, msg);
+      }
+    }
+  }, 6000); // Increased from 4000ms to spread out messages more
 };
 
 // Optional stub if someone mounts #snake-game inside another page.
