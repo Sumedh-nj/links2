@@ -55,15 +55,15 @@ window.initFlappyCell = function() {
   let frame = 0;
   let cell = { x: 86, y: canvas.height / 2, vy: 0 };
   let pipes = [];
-  let gravity = 0.36;
-  const baseGravity = 0.34;
-  const flapForce = -7.6;
-  let pipeSpeed = 2.4;
-  const basePipeSpeed = 2.2;
-  let pipeGap = 170;
+  let gravity = 0.28;
+  const baseGravity = 0.26;
+  const flapForce = -6.8;
+  let pipeSpeed = 1.9;
+  const basePipeSpeed = 1.8;
+  let pipeGap = 200;
   let lastPipeX = null;
-  const minGap = 135;
-  const minSpacingRatio = 0.52;
+  const minGap = 165;
+  const minSpacingRatio = 0.58;
 
   function setMessage(title, text) {
     overlayMsg.querySelector('h2').textContent = title;
@@ -171,33 +171,50 @@ window.initFlappyCell = function() {
         }
         updateHud();
         // ramp difficulty gradually
-        if (pipeGap > minGap) pipeGap = Math.max(minGap, pipeGap - 1.5);
-        pipeSpeed = Math.min(3.6, pipeSpeed + 0.04);
-        gravity = Math.min(0.5, gravity + 0.006);
+        if (pipeGap > minGap) pipeGap = Math.max(minGap, pipeGap - 1.0);
+        pipeSpeed = Math.min(3.2, pipeSpeed + 0.025);
+        gravity = Math.min(0.42, gravity + 0.004);
       }
-      const collideX = cell.x + 18 > p.x && cell.x - 18 < p.x + p.width;
-      const collideY = cell.y - 18 < p.top || cell.y + 18 > p.bottom;
+      const collideX = cell.x + 14 > p.x && cell.x - 14 < p.x + p.width;
+      const collideY = cell.y - 14 < p.top || cell.y + 14 > p.bottom;
       if (collideX && collideY) {
         endGame();
         return;
       }
     }
 
-    if (cell.y + 20 > canvas.height || cell.y - 20 < 0) {
+    if (cell.y + 16 > canvas.height || cell.y - 16 < 0) {
       endGame();
     }
   }
 
   function drawBackground() {
+    // Bright, vibrant sky gradient like daytime
     const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    g.addColorStop(0, '#0f2a18');
-    g.addColorStop(1, '#0b1c10');
+    const time = frame * 0.01;
+    g.addColorStop(0, `hsl(${200 + Math.sin(time) * 10}, 75%, 65%)`);
+    g.addColorStop(0.5, `hsl(${180 + Math.cos(time * 0.7) * 10}, 70%, 55%)`);
+    g.addColorStop(1, `hsl(${170}, 65%, 48%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Add bright floating particles for depth
     ctx.save();
-    ctx.strokeStyle = 'rgba(69,204,51,0.08)';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(120,255,100,0.4)';
+    for (let i = 0; i < 8; i++) {
+      const x = ((frame * (0.3 + i * 0.1)) % (canvas.width + 40)) - 20;
+      const y = (i * canvas.height / 8) + Math.sin(frame * 0.05 + i) * 15;
+      ctx.shadowColor = 'rgba(120,255,100,0.6)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(x, y, 3 + i * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(120,255,100,0.3)';
+    ctx.lineWidth = 1.5;
     for (let y = 0; y < canvas.height; y += 40) {
       ctx.beginPath();
       ctx.moveTo(0, y + 0.5);
@@ -208,52 +225,119 @@ window.initFlappyCell = function() {
   }
 
   function drawPipe(pipe) {
+    // Bright main pipe body with 3D gradient
     const g = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipe.width, 0);
-    g.addColorStop(0, '#26a644');
-    g.addColorStop(1, '#45cc33');
+    g.addColorStop(0, '#2fd077');
+    g.addColorStop(0.3, '#7fff00');
+    g.addColorStop(0.7, '#45cc33');
+    g.addColorStop(1, '#2fd077');
     ctx.fillStyle = g;
     ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
     ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
 
-    ctx.fillStyle = '#0c1c11';
-    ctx.fillRect(pipe.x, pipe.top - 10, pipe.width, 10);
-    ctx.fillRect(pipe.x, pipe.bottom, pipe.width, 10);
+    // Strong glow effect on edges
+    ctx.save();
+    ctx.shadowColor = 'rgba(120,255,100,0.8)';
+    ctx.shadowBlur = 18;
+    ctx.strokeStyle = '#7fff00';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(pipe.x, 0, pipe.width, pipe.top);
+    ctx.strokeRect(pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
+    ctx.restore();
+
+    // Bright caps with gradient
+    const capGrad = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipe.width, 0);
+    capGrad.addColorStop(0, '#1a7a2e');
+    capGrad.addColorStop(0.5, '#26a644');
+    capGrad.addColorStop(1, '#1a7a2e');
+    ctx.fillStyle = capGrad;
+    ctx.fillRect(pipe.x, pipe.top - 12, pipe.width, 12);
+    ctx.fillRect(pipe.x, pipe.bottom, pipe.width, 12);
+
+    // Bright highlight on caps
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(pipe.x, pipe.top - 11, pipe.width, 3);
+    ctx.fillRect(pipe.x, pipe.bottom + 1, pipe.width, 3);
   }
 
   function drawCell() {
-    const radius = 18;
-    const grad = ctx.createRadialGradient(cell.x - 6, cell.y - 6, 6, cell.x, cell.y, 26);
-    grad.addColorStop(0, '#9ff69a');
-    grad.addColorStop(1, '#45cc33');
+    const size = 22;
+    const pulse = Math.sin(frame * 0.15) * 0.2 + 0.8;
+    
     ctx.save();
-    ctx.shadowColor = 'rgba(69,204,51,0.6)';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = grad;
+    
+    // Main body - rounded square with gradient
+    const bodyGrad = ctx.createLinearGradient(cell.x - size, cell.y - size, cell.x + size, cell.y + size);
+    bodyGrad.addColorStop(0, '#7fff00');
+    bodyGrad.addColorStop(0.5, '#45cc33');
+    bodyGrad.addColorStop(1, '#2ea01d');
+    
+    ctx.shadowColor = `rgba(120,255,100,${0.9 * pulse})`;
+    ctx.shadowBlur = 25 * pulse;
+    ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.arc(cell.x, cell.y, radius, 0, Math.PI * 2);
+    // Rounded square body
+    ctx.roundRect(cell.x - size, cell.y - size, size * 2, size * 2, 8);
     ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = '#0b1c10';
+    
+    // White border for definition
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     ctx.lineWidth = 2;
-    for (let i = -2; i <= 2; i++) {
-      ctx.beginPath();
-      ctx.moveTo(cell.x - 14, cell.y + i * 4);
-      ctx.lineTo(cell.x + 14, cell.y + i * 4);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = '#ffe066';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(cell.x - 6, cell.y - 10);
-    ctx.lineTo(cell.x + 3, cell.y + 1);
-    ctx.lineTo(cell.x - 8, cell.y + 1);
-    ctx.lineTo(cell.x + 6, cell.y + 14);
     ctx.stroke();
+    
+    // Solar panel grid pattern (3x3)
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1.5;
+    // Vertical lines
+    ctx.beginPath();
+    ctx.moveTo(cell.x - size/3, cell.y - size + 4);
+    ctx.lineTo(cell.x - size/3, cell.y + size - 4);
+    ctx.moveTo(cell.x + size/3, cell.y - size + 4);
+    ctx.lineTo(cell.x + size/3, cell.y + size - 4);
+    // Horizontal lines
+    ctx.moveTo(cell.x - size + 4, cell.y - size/3);
+    ctx.lineTo(cell.x + size - 4, cell.y - size/3);
+    ctx.moveTo(cell.x - size + 4, cell.y + size/3);
+    ctx.lineTo(cell.x + size - 4, cell.y + size/3);
+    ctx.stroke();
+    
+    // Cute eyes
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowBlur = 0;
+    // Left eye
+    ctx.beginPath();
+    ctx.arc(cell.x - 8, cell.y - 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+    // Right eye
+    ctx.beginPath();
+    ctx.arc(cell.x + 8, cell.y - 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye pupils
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(cell.x - 7, cell.y - 4, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cell.x + 9, cell.y - 4, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cute smile
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cell.x, cell.y + 6, 8, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    
+    // Small energy indicator on top
+    ctx.fillStyle = '#ffff00';
+    ctx.shadowColor = 'rgba(255,255,100,0.9)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(cell.x, cell.y - size - 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
     ctx.restore();
   }
 
@@ -265,10 +349,17 @@ window.initFlappyCell = function() {
 
   function drawScoreboard() {
     ctx.save();
-    ctx.font = 'bold 28px Arial';
+    ctx.font = 'bold 32px Arial';
+    ctx.shadowColor = 'rgba(69,204,51,0.6)';
+    ctx.shadowBlur = 10;
     ctx.fillStyle = '#ecfaeb';
     ctx.textAlign = 'left';
-    ctx.fillText(score, 18, 42);
+    ctx.fillText(score, 20, 44);
+    
+    // Add glow outline
+    ctx.strokeStyle = 'rgba(69,204,51,0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeText(score, 20, 44);
     ctx.restore();
   }
 
@@ -292,10 +383,25 @@ window.initFlappyCell = function() {
     requestAnimationFrame(loop);
   }
 
-  canvas.addEventListener('pointerdown', flap);
-  window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); flap(); } });
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); // prevent double-tap zoom on mobile
+    flap();
+  });
+  window.addEventListener('keydown', (e) => { 
+    if (e.code === 'Space') { 
+      e.preventDefault(); 
+      flap(); 
+    } 
+  });
   resetBtn.addEventListener('click', () => { resetGame(); });
   window.addEventListener('resize', () => { setCanvasSize(); });
+
+  // Mobile viewport fix
+  const updateViewport = () => {
+    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+  };
+  updateViewport();
+  window.addEventListener('resize', updateViewport);
 
   setCanvasSize();
   resetGame();
@@ -348,22 +454,24 @@ window.initEnergyPong = function() {
   let state = 'serve'; // serve | play
   let playerScore = 0;
   let aiScore = 0;
-  const paddle = { w: 14, h: 96, speed: 5.4 };
+  const paddle = { w: 14, h: 110, speed: 5.4 };
   let playerY = (canvas.height - paddle.h) / 2;
   let aiY = playerY;
   let inputDir = 0;
   let ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 0, vy: 0, speed: 5 };
   let rally = 0;
   let difficulty = 'medium';
+  let ballTrail = [];
+  const maxTrailLength = 8;
 
   function applyDifficulty() {
     modeEl.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
     if (difficulty === 'easy') {
-      paddle.h = 104;
+      paddle.h = 120;
     } else if (difficulty === 'hard') {
-      paddle.h = 92;
+      paddle.h = 100;
     } else {
-      paddle.h = 96;
+      paddle.h = 110;
     }
   }
 
@@ -372,9 +480,19 @@ window.initEnergyPong = function() {
     const h = window.innerHeight;
     let targetW = 720;
     let targetH = 420;
-    if (w <= 480) { targetW = 360; targetH = 320; paddle.h = 100; }
-    else if (w <= 900) { targetW = 560; targetH = 360; }
-    applyDifficulty();
+    if (w <= 480) { 
+      targetW = Math.min(360, w * 0.95); 
+      targetH = Math.min(320, h * 0.5); 
+      paddle.h = 120; // larger paddle on mobile
+    }
+    else if (w <= 900) { 
+      targetW = Math.min(560, w * 0.92); 
+      targetH = Math.min(360, h * 0.55); 
+      paddle.h = 115; // slightly larger on tablet
+    }
+    else {
+      applyDifficulty();
+    }
     targetH = Math.min(targetH, Math.floor(h * 0.65));
     canvas.width = targetW;
     canvas.height = targetH;
@@ -392,7 +510,7 @@ window.initEnergyPong = function() {
     ball.y = canvas.height / 2;
     rally = 0;
     const angle = (Math.random() * 0.4 - 0.2) + (direction < 0 ? Math.PI : 0);
-    const baseSpeed = 4.3; // common start speed
+    const baseSpeed = 3.8; // slower start speed
     const speed = baseSpeed;
     ball.vx = Math.cos(angle) * speed;
     ball.vy = Math.sin(angle) * speed;
@@ -426,7 +544,7 @@ window.initEnergyPong = function() {
   function update(dt) {
     if (state !== 'play') return;
     const scale = Math.min(dt, 1.5);
-    const diffFactor = difficulty === 'hard' ? 1.2 : difficulty === 'easy' ? 0.85 : 1;
+    const diffFactor = difficulty === 'hard' ? 2.5 : difficulty === 'easy' ? 0.6 : 0.8;
 
     // keyboard move
     playerY += inputDir * paddle.speed * 5 * scale;
@@ -438,13 +556,20 @@ window.initEnergyPong = function() {
     // player paddle bounds
     playerY = clamp(playerY, 0, canvas.height - paddle.h);
 
-    // AI follows ball with easing
+    // AI follows ball - perfect tracking on hard mode
     const aiCenter = aiY + paddle.h / 2;
     const targetY = clamp(ball.y - paddle.h / 2, 0, canvas.height - paddle.h);
     const diff = targetY - aiY;
-    const aiBase = 3.8 * diffFactor;
-    const aiMax = aiBase + Math.min(2.2 * diffFactor, rally * 0.08 * diffFactor);
-    aiY += clamp(diff, -aiMax * scale, aiMax * scale);
+    
+    if (difficulty === 'hard') {
+      // Hard mode: AI is nearly perfect, instantly locks onto ball
+      aiY = targetY;
+    } else {
+      // Easy/Medium: AI uses easing
+      const aiBase = 2.8 * diffFactor;
+      const aiMax = aiBase + Math.min(1.5 * diffFactor, rally * 0.05 * diffFactor);
+      aiY += clamp(diff, -aiMax * scale, aiMax * scale);
+    }
 
     // walls
     if (ball.y < 6 || ball.y > canvas.height - 6) {
@@ -457,8 +582,8 @@ window.initEnergyPong = function() {
       if (ball.y > playerY && ball.y < playerY + paddle.h) {
         ball.x = 40;
         const offset = (ball.y - (playerY + paddle.h / 2)) / (paddle.h / 2);
-        ball.vx = Math.abs(ball.vx) + (0.08 + rally * 0.035) * diffFactor;
-        ball.vy = offset * (3.9 + rally * 0.09) * diffFactor;
+        ball.vx = Math.abs(ball.vx) + (0.06 + rally * 0.02) * diffFactor;
+        ball.vy = offset * (3.2 + rally * 0.06) * diffFactor;
         rally++;
       }
     }
@@ -467,8 +592,8 @@ window.initEnergyPong = function() {
       if (ball.y > aiY && ball.y < aiY + paddle.h) {
         ball.x = canvas.width - 40;
         const offset = (ball.y - (aiY + paddle.h / 2)) / (paddle.h / 2);
-        ball.vx = -Math.abs(ball.vx) - (0.08 + rally * 0.028) * diffFactor;
-        ball.vy = offset * (3.6 + rally * 0.085) * diffFactor;
+        ball.vx = -Math.abs(ball.vx) - (0.06 + rally * 0.018) * diffFactor;
+        ball.vy = offset * (3.0 + rally * 0.055) * diffFactor;
         rally++;
       }
     }
@@ -486,50 +611,133 @@ window.initEnergyPong = function() {
   }
 
   function drawBackground() {
-    const g = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    g.addColorStop(0, '#0f1f12');
-    g.addColorStop(1, '#0c130c');
+    // Vibrant animated gradient background like Google Doodles
+    const time = performance.now() * 0.0005;
+    const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    g.addColorStop(0, `hsl(${145 + Math.sin(time) * 10}, 65%, 35%)`);
+    g.addColorStop(0.5, `hsl(${140}, 60%, 28%)`);
+    g.addColorStop(1, `hsl(${135 + Math.cos(time) * 10}, 58%, 32%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Bright glowing center line with pulse
+    const pulse = Math.sin(time * 2) * 0.3 + 0.7;
     ctx.save();
-    ctx.strokeStyle = 'rgba(69,204,51,0.18)';
-    ctx.setLineDash([10, 14]);
-    ctx.lineWidth = 2;
+    ctx.shadowColor = `rgba(120,255,100,${0.9 * pulse})`;
+    ctx.shadowBlur = 20 * pulse;
+    ctx.strokeStyle = `rgba(120,255,100,${0.8 * pulse})`;
+    ctx.setLineDash([12, 16]);
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(canvas.width / 2, 10);
     ctx.lineTo(canvas.width / 2, canvas.height - 10);
     ctx.stroke();
     ctx.restore();
+
+    // Add bright court glow zones
+    ctx.save();
+    const leftGlow = ctx.createRadialGradient(canvas.width * 0.25, canvas.height / 2, 0, canvas.width * 0.25, canvas.height / 2, canvas.width * 0.3);
+    leftGlow.addColorStop(0, 'rgba(69,204,51,0.15)');
+    leftGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = leftGlow;
+    ctx.fillRect(0, 0, canvas.width / 2, canvas.height);
+
+    const rightGlow = ctx.createRadialGradient(canvas.width * 0.75, canvas.height / 2, 0, canvas.width * 0.75, canvas.height / 2, canvas.width * 0.3);
+    rightGlow.addColorStop(0, 'rgba(95,226,156,0.15)');
+    rightGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = rightGlow;
+    ctx.fillRect(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+    ctx.restore();
   }
 
   function drawPaddle(x, y, color) {
     ctx.save();
-    ctx.fillStyle = color;
-    ctx.shadowColor = 'rgba(69,204,51,0.45)';
-    ctx.shadowBlur = 10;
+    // Intense neon glow effect
+    const brightColor = color === '#45cc33' ? '#7fff00' : '#00ff7f';
+    ctx.shadowColor = brightColor;
+    ctx.shadowBlur = 25;
+    
+    // Bright 3D gradient for paddle
+    const g = ctx.createLinearGradient(x, y, x + paddle.w, y);
+    g.addColorStop(0, brightColor);
+    g.addColorStop(0.5, '#ffffff');
+    g.addColorStop(1, brightColor);
+    ctx.fillStyle = g;
     ctx.fillRect(x, y, paddle.w, paddle.h);
+    
+    // Bright inner highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(x + 2, y + 2, paddle.w - 4, paddle.h * 0.3);
+    
+    // Bright edge glow
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, paddle.w, paddle.h);
     ctx.restore();
   }
 
   function drawBall() {
+    // Add current position to trail
+    ballTrail.push({x: ball.x, y: ball.y});
+    if (ballTrail.length > maxTrailLength) ballTrail.shift();
+
     ctx.save();
-    ctx.fillStyle = '#ffe066';
-    ctx.shadowColor = 'rgba(255,224,102,0.55)';
-    ctx.shadowBlur = 14;
+    // Draw trail
+    ballTrail.forEach((pos, i) => {
+      const alpha = (i / ballTrail.length) * 0.4;
+      const size = 6 + (i / ballTrail.length) * 2;
+      ctx.fillStyle = `rgba(255,224,102,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Main ball with super intense glow
+    const pulse = Math.sin(performance.now() * 0.01) * 0.3 + 0.7;
+    ctx.shadowColor = `rgba(255,255,100,${pulse})`;
+    ctx.shadowBlur = 35 * pulse;
+    
+    const grad = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 2, ball.x, ball.y, 11);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.3, '#ffff66');
+    grad.addColorStop(1, '#ffd700');
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, 8, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Bright outer energy ring
+    ctx.strokeStyle = `rgba(255,255,150,${0.9 * pulse})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, 14, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 
   function drawScore() {
     ctx.save();
-    ctx.font = 'bold 28px Arial';
-    ctx.fillStyle = '#ecfaeb';
+    ctx.font = 'bold 32px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(playerScore, canvas.width / 2 - 40, 36);
-    ctx.fillText(aiScore, canvas.width / 2 + 40, 36);
+    
+    // Player score (left) with green glow
+    ctx.shadowColor = 'rgba(69,204,51,0.8)';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#ecfaeb';
+    ctx.fillText(playerScore, canvas.width / 2 - 50, 40);
+    ctx.strokeStyle = 'rgba(69,204,51,0.5)';
+    ctx.lineWidth = 2;
+    ctx.strokeText(playerScore, canvas.width / 2 - 50, 40);
+    
+    // AI score (right) with cyan glow
+    ctx.shadowColor = 'rgba(95,226,156,0.8)';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#ecfaeb';
+    ctx.fillText(aiScore, canvas.width / 2 + 50, 40);
+    ctx.strokeStyle = 'rgba(95,226,156,0.5)';
+    ctx.lineWidth = 2;
+    ctx.strokeText(aiScore, canvas.width / 2 + 50, 40);
+    
     ctx.restore();
   }
 
@@ -555,7 +763,16 @@ window.initEnergyPong = function() {
     const y = e.clientY - rect.top;
     playerY = Math.max(0, Math.min(canvas.height - paddle.h, y - paddle.h / 2));
   });
-  canvas.addEventListener('pointerdown', () => { if (state === 'serve') startPlay(); });
+  
+  // Touch tap to position paddle (alternative to drag)
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); // prevent text selection
+    const rect = canvas.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    playerY = Math.max(0, Math.min(canvas.height - paddle.h, y - paddle.h / 2));
+    if (state === 'serve') startPlay();
+  });
+  
   window.addEventListener('keydown', (e) => {
     if (e.key === 'w' || e.key === 'ArrowUp') { inputDir = -1; startPlay(); }
     if (e.key === 's' || e.key === 'ArrowDown') { inputDir = 1; startPlay(); }
@@ -602,12 +819,12 @@ window.initGridGambit = function() {
         <div class="hud-pill"><span>You</span><strong id="gambit-player-score">0</strong></div>
         <div class="hud-pill"><span>Dealer</span><strong id="gambit-dealer-score">0</strong></div>
         <div class="hud-pill"><span>Ties</span><strong id="gambit-ties">0</strong></div>
-        <div class="hud-pill"><span>Charge</span><strong id="gambit-charge">0</strong></div>
-        <div class="hud-pill"><span>Best Streak</span><strong id="gambit-best">${bestStreak}</strong></div>
+        <div class="hud-pill" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);"><span>⚡ Charge</span><strong id="gambit-charge">0</strong></div>
+        <div class="hud-pill"><span>🏆 Best Streak</span><strong id="gambit-best">${bestStreak}</strong></div>
       </div>
       <div class="hud-group">
-        <button class="ghost-btn primary" id="gambit-deal">Deal</button>
-        <button class="ghost-btn" id="gambit-overcharge">Overcharge (1)</button>
+        <button class="ghost-btn primary" id="gambit-deal">Deal Cards</button>
+        <button class="ghost-btn" id="gambit-overcharge" style="position: relative;">⚡ Overcharge (costs 1)</button>
       </div>
     </div>
     <div class="gambit-table">
@@ -623,7 +840,7 @@ window.initGridGambit = function() {
       </div>
     </div>
     <div class="gambit-actions">
-      <span class="gambit-tip" id="gambit-tip">Pairs, straights, and flushes pay off. Best five-card hand wins.</span>
+      <span class="gambit-tip" id="gambit-tip">Win hands to build charge. Use Overcharge BEFORE dealing to boost your next hand by +20%. Pairs, straights, and flushes score higher.</span>
     </div>
   `;
 
@@ -675,11 +892,13 @@ window.initGridGambit = function() {
 
   function renderHand(container, hand) {
     container.innerHTML = '';
-    hand.forEach(card => {
+    hand.forEach((card, index) => {
       const cardEl = document.createElement('div');
       const red = card.suit === '♥' || card.suit === '♦';
       cardEl.className = 'card' + (red ? ' red' : '');
+      cardEl.style.animation = `cardDeal 0.4s ease-out ${index * 0.08}s both`;
       cardEl.innerHTML = `
+        <div class="card-shine"></div>
         <div class="rank">${card.rank}</div>
         <div class="suit">${card.suit}</div>
         <div class="rank bottom">${card.rank}</div>
@@ -784,6 +1003,9 @@ window.initGridGambit = function() {
     const dealerEval = evaluateHand(dealerHand);
     const boost = charge > 0 && overchargeBtn.classList.contains('active') ? 1.2 : 1;
     overchargeBtn.classList.remove('active');
+    overchargeBtn.textContent = '⚡ Overcharge (costs 1)';
+    overchargeBtn.style.background = '';
+    overchargeBtn.style.color = '';
     // Compare numeric power with optional boost
     const playerPower = handPower(playerEval) * boost;
     const dealerPower = handPower(dealerEval);
@@ -799,16 +1021,16 @@ window.initGridGambit = function() {
     if (result > 0) {
       scores.player++;
       charge = Math.min(9, charge + 1); // cap charge to keep choices tight
-      tipEl.textContent = `You win! Streak: ${streak + 1}. Charge +1 (now ${charge}).`;
+      tipEl.textContent = `🎉 You win with ${playerEval.name}! Streak: ${streak + 1}. ⚡ Charge +1 (now ${charge}).`;
       updateStreak(1);
     } else if (result < 0) {
       scores.dealer++;
-      charge = Math.max(0, charge - 1);
-      tipEl.textContent = 'Dealer takes it. Charge -1 and streak resets.';
+      // Don't lose charge on loss, only on use
+      tipEl.textContent = `Dealer wins with ${dealerEval.name}. Your streak resets, but you keep your charge.`;
       updateStreak(-1);
     } else {
       scores.ties++;
-      tipEl.textContent = 'Tie. No charge change.';
+      tipEl.textContent = `Tie! Both had ${playerEval.name}. No charge change.`;
     }
     playerEl.textContent = scores.player;
     dealerEl.textContent = scores.dealer;
@@ -822,14 +1044,23 @@ window.initGridGambit = function() {
     if (charge < 1) return;
     charge -= 1;
     localStorage.setItem('gambit_charge', charge);
-    tipEl.textContent = 'Overcharged: +20% hand strength this round.';
+    tipEl.textContent = '⚡ OVERCHARGED! Your next hand gets +20% boost. Deal now to use it!';
     overchargeBtn.classList.add('active');
+    overchargeBtn.textContent = '⚡ ACTIVE!';
+    overchargeBtn.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)';
+    overchargeBtn.style.color = '#000';
     return 1.2;
   }
 
   overchargeBtn.addEventListener('click', () => {
-    if (charge < 1) { overchargeBtn.disabled = true; return; }
-    overchargeBtn.disabled = false;
+    if (charge < 1) { 
+      tipEl.textContent = '⚠️ Not enough charge! Win hands to build up charge first.';
+      return; 
+    }
+    if (overchargeBtn.classList.contains('active')) {
+      tipEl.textContent = '⚡ Overcharge already active! Deal cards to use the boost.';
+      return;
+    }
     applyOvercharge();
     updateMeta();
   });
