@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // ================= LINKS DATA =================
-=======
-8.3// ====== Links Data ======
->>>>>>> 8b939b65b350687244cd42b6a3c7d310bd85b4fa
 const linksData = {
   general: {
     ERP: "https://iitdadierp.iitd.ac.in/student/login",
@@ -163,7 +159,6 @@ if (toggleBtn) {
 // ================= SEM 2 UPDATES =================
 
 
-<<<<<<< HEAD
 addUpdate(
   "quizzes",
   "AENL200: Quiz 1 scheduled for Monday 02/02/2026",
@@ -177,29 +172,6 @@ addUpdate(
 );
 
 // ================= INIT =================
-=======
-//Updates:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ====== Initialize Page ======
->>>>>>> 8b939b65b350687244cd42b6a3c7d310bd85b4fa
 window.addEventListener("DOMContentLoaded", () => {
   renderGeneralLinks(".general", linksData.general);
   renderCourseLinks(".links", linksData.courses);
