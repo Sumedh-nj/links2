@@ -405,3 +405,8 @@ a:hover {
     flex: 1;
   }
 }
+.general a {
+  position: relative;
+  z-index: 999;
+  pointer-events: auto;
+}
