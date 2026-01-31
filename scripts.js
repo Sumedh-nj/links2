@@ -1,53 +1,48 @@
-// ====== Links Data ======
+// ================= LINKS DATA =================
 const linksData = {
   general: {
     ERP: "https://iitdadierp.iitd.ac.in/student/login",
     Teams: "https://teams.microsoft.com/",
     Outlook: "https://outlook.office.com/",
     Blackboard: "https://iida.blackboard.com/ultra/course",
-    TimeTable: "https://abudhabi.iitd.ac.in/uploaded_files/B.Tech.%202nd%20year%20EEN%20Sem%201_2025-26.pdf"
+    TimeTable: "file:///C:/Users/sumed/AppData/Local/Packages/5319275A.WhatsAppDesktop_cv1g1gvanyjgm/LocalState/sessions/9E31299E24A5A650AB1943C959BB6F966C723F1E/transfers/2026-05/V2%20-%20B.Tech%20EEN%20-%20Semester%204.pdf"
   },
+
   courses: {
-    "AENL220 (Heat)": {
-      "Lecture slides": "https://iitdabudhabi.sharepoint.com/sites/AENL220_jacpcl/Class%20Materials/Forms/AllItems.aspx",
-      Quiz: "https://iitdabudhabi.sharepoint.com/:f:/s/AENL220_jacpcl/Ene8Rq62J5JEonz9fQsD5BUBIJLmyXtU-onfgvHZgCNK4g?e=T6SezX",
-      Tutorials: "https://iitdabudhabi.sharepoint.com/:f:/s/AENL220_jacpcl/EtURNCymC25FqStyIHHQjH8BzKEl9InbYIHEWA3reHm2CQ?e=w8iQBg"
+    "AENL200 (CET)": {
+      Blackboard: "https://iida.blackboard.com/ultra/courses/_106_1/outline"
     },
-    "AAPL105 (Mech)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_38_1/outline"
+
+    "AENL224 (Elec Mch)": {
+      Blackboard: "https://iida.blackboard.com/ultra/courses/_109_1/outline"
     },
-    "AENL210 (Thermo)": {
-      Blackboard : "https://iida.blackboard.com/ultra/courses/_39_1/outline",
-      Lectures: "https://iitdabudhabi-my.sharepoint.com/:f:/g/personal/kkant_iitdabudhabi_ac_ae/Enl1qAazZR9BiFn9yuRHZl4Be2lylwrBb1NKZ_ew9EDn7Q?e=JzixUb",
-      "Assig/Quiz/Tut": "https://iitdabudhabi-my.sharepoint.com/:f:/g/personal/kkant_iitdabudhabi_ac_ae/EmyiV-znPk9NtH9FoIu7GREBj0c8bxilcB5rOI_EQgTnkA?e=MfniI6",
-      "Assig/Quiz/Tut (Solution)": "https://iitdabudhabi-my.sharepoint.com/:f:/g/personal/kkant_iitdabudhabi_ac_ae/Es8ZXG4JDGJBl8iwEl7fmHwBu-cJIzobmNyaq4GFLzK5NQ?e=IBLE0E"
+
+    "AENL223 (Materials Enrgy Sys)": {
+      Blackboard: "https://iida.blackboard.com/ultra/courses/_107_1/outline"
     },
-    "AENL222 (Electro & Micro)": {
-      Onedrive: "https://iitdabudhabi-my.sharepoint.com/personal/anandarup_iitdabudhabi_ac_ae/_layouts/15/onedrive.aspx?id=/personal/anandarup_iitdabudhabi_ac_ae/Documents/AENL222_for_sharing&ga=1",
-      "Lectures (Slides)": "https://iitdabudhabi-my.sharepoint.com/:f:/r/personal/anandarup_iitdabudhabi_ac_ae/Documents/AENL222_for_sharing/lecture_slides?csf=1&web=1&e=mHx3jp",
-      "Lectures (Vids)": "https://iitdabudhabi-my.sharepoint.com/:f:/r/personal/anandarup_iitdabudhabi_ac_ae/Documents/AENL222_for_sharing/lecture_videos?csf=1&web=1&e=hZFX1z",
-      "Problem Sheets": "https://iitdabudhabi-my.sharepoint.com/:f:/r/personal/anandarup_iitdabudhabi_ac_ae/Documents/AENL222_for_sharing/problem_sheet?csf=1&web=1&e=1TktU9"
-    },
-    "AENL338 (AI)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_6_1/outline"
+
+    "AENL202 (RET)": {
+      Blackboard: "https://iida.blackboard.com/ultra/courses/_108_1/outline"
     }
   }
 };
 
-// ====== Updates Data ======
+// ================= UPDATES DATA =================
 const updatesData = [];
 
-// ====== Instagram Reels (popular picks) ======
+// ================= INSTAGRAM REELS =================
 // Local vertical clips (idk1.mp4 ... idk16.mp4)
 const localClips = Array.from({ length: 16 }, (_, i) => `idk${i + 1}.mp4`);
 
 function pickRandomClips(count) {
   const pool = [...localClips];
   const result = [];
+
   for (let i = 0; i < count && pool.length; i++) {
     const idx = Math.floor(Math.random() * pool.length);
     result.push(pool.splice(idx, 1)[0]);
   }
+
   return result;
 }
 
@@ -55,31 +50,30 @@ function renderLocalClips() {
   const leftVid = document.getElementById("local-clip-left");
   const rightVid = document.getElementById("local-clip-right");
   if (!leftVid || !rightVid || localClips.length === 0) return;
+
   const [leftSrc, rightSrc] = pickRandomClips(2);
+
   [leftVid, rightVid].forEach((vid, idx) => {
-    const source = idx === 0 ? leftSrc : rightSrc;
-    vid.src = source;
+    vid.src = idx === 0 ? leftSrc : rightSrc;
     vid.muted = true;
     vid.playsInline = true;
     vid.loop = true;
     vid.autoplay = true;
     vid.load();
-    vid.play().catch(() => {
-      vid.muted = true;
-      vid.play().catch(() => {});
-    });
+    vid.play().catch(() => {});
   });
 }
 
-// ====== Helper to Add Update ======
+// ================= HELPER: ADD UPDATE =================
 function addUpdate(category, text, expiry) {
   updatesData.push([category, text, expiry]);
 }
 
-// ====== Render General Links ======
+// ================= RENDER GENERAL LINKS =================
 function renderGeneralLinks(selector, data) {
   const container = document.querySelector(selector);
   if (!container) return;
+
   for (const [name, url] of Object.entries(data)) {
     const link = document.createElement("a");
     link.href = url;
@@ -89,10 +83,11 @@ function renderGeneralLinks(selector, data) {
   }
 }
 
-// ====== Render Course Links ======
+// ================= RENDER COURSE LINKS =================
 function renderCourseLinks(selector, data) {
   const container = document.querySelector(selector);
   if (!container) return;
+
   for (const [course, resources] of Object.entries(data)) {
     const box = document.createElement("div");
     box.className = "box";
@@ -108,32 +103,33 @@ function renderCourseLinks(selector, data) {
       link.textContent = name;
       box.appendChild(link);
     }
+
     container.appendChild(box);
   }
 }
 
-// ====== Render Updates ======
+// ================= RENDER UPDATES =================
 function renderUpdates() {
   const now = new Date();
-
-  // group updates by category
   const grouped = {};
+
   updatesData.forEach(([category, text, expiry]) => {
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push([text, expiry]);
   });
 
-  // sort inside each category
   for (const [category, items] of Object.entries(grouped)) {
     items.sort((a, b) => new Date(a[1]) - new Date(b[1]));
     const container = document.getElementById(category + "-box");
     if (!container) continue;
 
     items.forEach(([text, expiry]) => {
-      const parts = String(expiry).split('-').map(Number);
+      const parts = String(expiry).split("-").map(Number);
       if (parts.length !== 3) return;
+
       const [y, m, d] = parts;
-      const expiryExclusive = new Date(y, m - 1, d + 1, 0, 0, 0, 0);
+      const expiryExclusive = new Date(y, m - 1, d + 1);
+
       if (now < expiryExclusive) {
         const p = document.createElement("p");
         p.textContent = text;
@@ -143,30 +139,39 @@ function renderUpdates() {
   }
 }
 
-// ====== Theme Toggle ======
+// ================= THEME TOGGLE =================
 const toggleBtn = document.getElementById("theme-toggle");
-const currentTheme = localStorage.getItem("theme");
-if (currentTheme) document.documentElement.setAttribute("data-theme", currentTheme);
+const savedTheme = localStorage.getItem("theme");
 
-toggleBtn.addEventListener("click", () => {
-  const theme = document.documentElement.getAttribute("data-theme");
-  const newTheme = theme === "light" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", newTheme);
-  localStorage.setItem("theme", newTheme);
-});
+if (savedTheme) {
+  document.documentElement.setAttribute("data-theme", savedTheme);
+}
 
-// ====== Updates ======
+if (toggleBtn) {
+  toggleBtn.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+  });
+}
 
-addUpdate("timetable","AENL220: Thursday tutorial will be held in the first half, ie. classes will start from 9 AM","2026-09-25");
+// ================= SEM 2 UPDATES =================
 
-addUpdate("assignments","AENL210: Tutorial 11 to be submitted on Friday 21/11/2025","2025-11-21");
-addUpdate("assignments","AENL220: Mega Assignment report submission to be submitted on teams by 4/12/2025","2025-12-4");
-addUpdate("assignments","AAPL105: Assignment 9 to be submitted on Wednesday 26/11/2025","2025-11-26");
-addUpdate("quizzes","AAPL105: Quiz 3 to be held on 24/11/2025","2025-11-24");
-addUpdate("quizzes","AENL220: Quiz 4 for convection on Tuesday 25/11/2025","2025-11-25");
-addUpdate()
 
-// ====== Initialize Page ======
+addUpdate(
+  "quizzes",
+  "AENL200: Quiz 1 scheduled for Monday 02/02/2026",
+  "2026-02-02"
+);
+
+addUpdate(
+  "quizzes",
+  "AENL202: \"Suprise\" Quiz 1 scheduled for Unknown date next week",
+  "2026-02-06"
+);
+
+// ================= INIT =================
 window.addEventListener("DOMContentLoaded", () => {
   renderGeneralLinks(".general", linksData.general);
   renderCourseLinks(".links", linksData.courses);
