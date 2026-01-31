@@ -186,4 +186,13 @@ window.addEventListener("DOMContentLoaded", () => {
   renderCourseLinks(".links", linksData.courses);
   renderUpdates();
   renderLocalClips();
+
+  // Make timetable box clickable
+  const timetableBox = document.getElementById("timetable-box");
+  if (timetableBox) {
+    timetableBox.style.cursor = "pointer";
+    timetableBox.addEventListener("click", () => {
+      window.open(linksData.general.TimeTable, "_blank");
+    });
+  }
 });
