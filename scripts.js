@@ -5,7 +5,7 @@ const linksData = {
     Teams: "https://teams.microsoft.com/",
     Outlook: "https://outlook.office.com/",
     Blackboard: "https://iida.blackboard.com/ultra/course",
-    TimeTable: "file:///C:/Users/sumed/AppData/Local/Packages/5319275A.WhatsAppDesktop_cv1g1gvanyjgm/LocalState/sessions/9E31299E24A5A650AB1943C959BB6F966C723F1E/transfers/2026-05/V2%20-%20B.Tech%20EEN%20-%20Semester%204.pdf"
+    TimeTable: "https://iitdabudhabi.ac.ae/uploaded_files/semseter-schedule/V2%20-%20B.Tech%20EEN%20-%20Semester%204.pdf"
   },
 
   courses: {
@@ -31,7 +31,6 @@ const linksData = {
 const updatesData = [];
 
 // ================= INSTAGRAM REELS =================
-// Local vertical clips (idk1.mp4 ... idk16.mp4)
 const localClips = Array.from({ length: 16 }, (_, i) => `idk${i + 1}.mp4`);
 
 function pickRandomClips(count) {
@@ -108,20 +107,32 @@ function renderCourseLinks(selector, data) {
   }
 }
 
-// ================= RENDER UPDATES =================
+// ================= RENDER UPDATES (QUIZZES FIRST) =================
 function renderUpdates() {
   const now = new Date();
   const grouped = {};
 
+  // group updates
   updatesData.forEach(([category, text, expiry]) => {
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push([text, expiry]);
   });
 
-  for (const [category, items] of Object.entries(grouped)) {
+  // define priority
+  const orderedCategories = [
+    "quizzes",
+    ...Object.keys(grouped).filter(c => c !== "quizzes")
+  ];
+
+  orderedCategories.forEach(category => {
+    const items = grouped[category];
+    if (!items) return;
+
     items.sort((a, b) => new Date(a[1]) - new Date(b[1]));
     const container = document.getElementById(category + "-box");
-    if (!container) continue;
+    if (!container) return;
+
+    container.innerHTML = ""; // clean slate
 
     items.forEach(([text, expiry]) => {
       const parts = String(expiry).split("-").map(Number);
@@ -136,7 +147,7 @@ function renderUpdates() {
         container.appendChild(p);
       }
     });
-  }
+  });
 }
 
 // ================= THEME TOGGLE =================
@@ -157,8 +168,6 @@ if (toggleBtn) {
 }
 
 // ================= SEM 2 UPDATES =================
-
-
 addUpdate(
   "quizzes",
   "AENL200: Quiz 1 scheduled for Monday 02/02/2026",
@@ -167,7 +176,7 @@ addUpdate(
 
 addUpdate(
   "quizzes",
-  "AENL202: \"Suprise\" Quiz 1 scheduled for Unknown date next week",
+  "AENL202: \"Surprise\" Quiz 1 scheduled for unknown date next week",
   "2026-02-06"
 );
 
