@@ -1,28 +1,28 @@
 // ================= LINKS DATA =================
 const linksData = {
   general: {
-    ERP: "https://iitdadierp.iitd.ac.in/student/login",
-    Teams: "https://teams.microsoft.com/",
-    Outlook: "https://outlook.office.com/",
-    Blackboard: "https://iida.blackboard.com/ultra/course",
-    TimeTable: "https://iitdabudhabi.ac.ae/uploaded_files/semseter-schedule/V2%20-%20B.Tech%20EEN%20-%20Semester%204.pdf"
+    "ERP": "https://iitdadierp.iitd.ac.in/student/login",
+    "Teams": "https://teams.microsoft.com/",
+    "Outlook": "https://outlook.office.com/",
+    "Blackboard": "https://iida.blackboard.com/ultra/course",
+    "TimeTable": "https://iitdabudhabi.ac.ae/uploaded_files/semseter-schedule/V2%20-%20B.Tech%20EEN%20-%20Semester%204.pdf"
   },
 
   courses: {
     "AENL200 (CET)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_106_1/outline"
+      "Blackboard": "https://iida.blackboard.com/ultra/courses/_106_1/outline"
     },
 
     "AENL224 (Elec Mch)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_109_1/outline"
+      "Blackboard": "https://iida.blackboard.com/ultra/courses/_109_1/outline"
     },
 
     "AENL223 (Materials Enrgy Sys)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_107_1/outline"
+      "Blackboard": "https://iida.blackboard.com/ultra/courses/_107_1/outline"
     },
 
     "AENL202 (RET)": {
-      Blackboard: "https://iida.blackboard.com/ultra/courses/_108_1/outline"
+      "Blackboard": "https://iida.blackboard.com/ultra/courses/_108_1/outline"
     }
   }
 };
