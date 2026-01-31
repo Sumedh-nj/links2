@@ -1,4 +1,4 @@
-// ================= LINKS DATA =================
+// ====== Links Data ======
 const linksData = {
   general: {
     ERP: "https://iitdadierp.iitd.ac.in/student/login",
@@ -141,37 +141,41 @@ function renderUpdates() {
 
 // ================= THEME TOGGLE =================
 const toggleBtn = document.getElementById("theme-toggle");
-const savedTheme = localStorage.getItem("theme");
+const currentTheme = localStorage.getItem("theme");
+if (currentTheme) document.documentElement.setAttribute("data-theme", currentTheme);
 
-if (savedTheme) {
-  document.documentElement.setAttribute("data-theme", savedTheme);
-}
-
-if (toggleBtn) {
-  toggleBtn.addEventListener("click", () => {
-    const current = document.documentElement.getAttribute("data-theme");
-    const next = current === "light" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  });
-}
-
-// ================= SEM 2 UPDATES =================
+toggleBtn.addEventListener("click", () => {
+  const theme = document.documentElement.getAttribute("data-theme");
+  const newTheme = theme === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("theme", newTheme);
+});
 
 
-addUpdate(
-  "quizzes",
-  "AENL200: Quiz 1 scheduled for Monday 02/02/2026",
-  "2026-02-02"
-);
+//Updates:
+addUpdate("timetable","AAPL105+AENL210: Timings swapped, AENL210 lecture at 10 am, AAPL105 lecture at 11 am for 16/09/2025 ","2025-09-16")
 
-addUpdate(
-  "quizzes",
-  "AENL202: \"Suprise\" Quiz 1 scheduled for Unknown date next week",
-  "2026-02-06"
-);
 
-// ================= INIT =================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ====== Initialize Page ======
 window.addEventListener("DOMContentLoaded", () => {
   renderGeneralLinks(".general", linksData.general);
   renderCourseLinks(".links", linksData.courses);
