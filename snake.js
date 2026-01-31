@@ -28,9 +28,9 @@
   let cellSize = 40; // will be recalculated
   let cols = 12;
   let rows = 12;
-  const MIN_CELL = 20; // don't make cells too small
+  const MIN_CELL = 30; // larger minimum for better mobile visibility
   const MAX_CELL = 78; // allow slightly larger cells so there are fewer squares
-  const MIN_COLS = 6;
+  const MIN_COLS = 8; // start with more cells on mobile for easier gameplay
   const MAX_COLS = 12;
   let gridBoundary = { cols, rows };
   let resizeTimer = null;
@@ -46,13 +46,18 @@
     const availH = Math.max(240, wrapHeight);
 
     // Responsive behavior:
-    // - On narrow screens, keep a compact grid
+    // - On narrow screens (mobile), use FEWER cells for easier control
     // - On larger screens, scale independently for width/height so any rectangle fills
     const MOBILE_BREAKPOINT = 720;
-    const targetCell = wrapWidth < MOBILE_BREAKPOINT ? 48 : 58;
+    const isMobile = wrapWidth < MOBILE_BREAKPOINT;
+    
+    // Mobile: 8x8 to 10x10 grid for easier control
+    // Desktop: up to 12x12
+    const targetCols = isMobile ? 8 : 10;
+    const targetRows = isMobile ? 8 : 10;
 
-    let newCols = clamp(Math.round(availW / targetCell), MIN_COLS, MAX_COLS);
-    let newRows = clamp(Math.round(availH / targetCell), MIN_COLS, MAX_COLS);
+    let newCols = clamp(targetCols, MIN_COLS, isMobile ? 10 : MAX_COLS);
+    let newRows = clamp(targetRows, MIN_COLS, isMobile ? 10 : MAX_COLS);
 
     // Compute cell size to fit the rectangle (integer pixels)
     let newCellW = Math.max(MIN_CELL, Math.min(MAX_CELL, Math.floor(availW / newCols)));
@@ -103,10 +108,10 @@
   // Game constants
   const ENERGY_PER_FOOD = 10; // MWh per RE unit
   // Slow initial speed for easier play: increased interval by ~25% (slower)
-  const INITIAL_SPEED_MS = 200; // base logic interval in ms (slower start)
-  const SPEED_STEP_MS = 12; // decrease logic delay every SPEED_UP_FOOD_COUNT
+  const INITIAL_SPEED_MS = 240; // base logic interval in ms (slower start)
+  const SPEED_STEP_MS = 15; // decrease logic delay every SPEED_UP_FOOD_COUNT
   const SPEED_UP_FOOD_COUNT = 5; // every 5 foods, increase speed
-  const MIN_DELAY_MS = 100; // cap: do not allow interval faster than this (ms)
+  const MIN_DELAY_MS = 110; // cap: do not allow interval faster than this (ms)
   const INITIAL_SNAKE_LENGTH = 4;
   // Frame timing: higher-frequency render loop while logic updates run every N frames
   const FRAME_MS = 40; // render frame interval (ms) -> ~25 FPS
@@ -305,44 +310,60 @@
   // Draw a distinct head so players can identify direction quickly
   function drawHead(x, y) {
     const px = x * cellSize; const py = y * cellSize;
+    const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
+    
     ctx.save();
-    // glow effect for head
-    ctx.shadowBlur = Math.max(6, Math.floor(cellSize * 0.15));
-    ctx.shadowColor = 'rgba(255,220,120,0.9)';
-    // brighter gradient
+    // Animated glow effect
+    ctx.shadowBlur = Math.max(12, Math.floor(cellSize * 0.3)) * pulse;
+    ctx.shadowColor = `rgba(255,235,120,${0.95 * pulse})`;
+    
+    // Brighter gradient for better visibility with glow
     const g = ctx.createLinearGradient(px, py, px+cellSize, py+cellSize);
-    g.addColorStop(0, '#fff8b0');
-    g.addColorStop(0.4, '#ffd24a');
-    g.addColorStop(1, '#ffb84d');
+    g.addColorStop(0, '#fffef0');
+    g.addColorStop(0.25, '#ffe84a');
+    g.addColorStop(0.6, '#ffcc4d');
+    g.addColorStop(1, '#ffa500');
     ctx.fillStyle = g;
-    ctx.fillRect(px+2, py+2, cellSize-4, cellSize-4);
-    // white outline for clear contrast
-    ctx.lineWidth = Math.max(1, Math.floor(cellSize * 0.06));
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.strokeRect(px+2, py+2, cellSize-4, cellSize-4);
+    ctx.fillRect(px+1, py+1, cellSize-2, cellSize-2);
+    
+    // Animated border pulse
+    ctx.lineWidth = Math.max(2, Math.floor(cellSize * 0.1));
+    ctx.strokeStyle = `rgba(255,255,255,${0.95 * pulse})`;
+    ctx.strokeRect(px+1, py+1, cellSize-2, cellSize-2);
+    
+    // Inner glow
+    ctx.fillStyle = `rgba(255,255,255,${0.3 * pulse})`;
+    ctx.fillRect(px + cellSize*0.2, py + cellSize*0.2, cellSize*0.6, cellSize*0.6);
     ctx.restore();
   }
 
   // Draw a subtle grid using exact cellSize and cols/rows so visuals align 1:1 with logic
   function drawGrid() {
     ctx.save();
-    // subtle greenish lines, thin and crisp
-    ctx.strokeStyle = 'rgba(106,214,92,0.12)';
-    ctx.lineWidth = Math.max(1, Math.floor(cellSize * 0.03));
+    // Animated pulsing grid lines
+    const pulse = Math.sin(Date.now() * 0.001) * 0.05 + 0.15;
+    ctx.strokeStyle = `rgba(106,214,92,${pulse})`;
+    ctx.lineWidth = Math.max(1, Math.floor(cellSize * 0.04));
+    
     ctx.beginPath();
     // vertical lines
     for (let x = 0; x <= cols; x++) {
-      const px = x * cellSize + 0.5; // half-pixel for crisp 1px lines
+      const px = x * cellSize + 0.5;
+      const intensity = 1 - Math.abs((x / cols) - 0.5) * 0.3; // brighter in center
+      ctx.globalAlpha = intensity;
       ctx.moveTo(px, 0);
       ctx.lineTo(px, canvas.height);
     }
     // horizontal lines
     for (let y = 0; y <= rows; y++) {
       const py = y * cellSize + 0.5;
+      const intensity = 1 - Math.abs((y / rows) - 0.5) * 0.3;
+      ctx.globalAlpha = intensity;
       ctx.moveTo(0, py);
       ctx.lineTo(canvas.width, py);
     }
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
 
@@ -361,33 +382,64 @@
   function drawFood(x, y) {
     const px = x * cellSize + cellSize/2;
     const py = y * cellSize + cellSize/2;
+    const pulse = Math.sin(Date.now() * 0.005) * 0.1 + 0.9;
+    
+    ctx.save();
+    // Outer glow
+    ctx.shadowColor = `rgba(117,255,51,${0.8 * pulse})`;
+    ctx.shadowBlur = cellSize * 0.6 * pulse;
+    
     ctx.beginPath();
-    // Attractive smooth green circle without text
-    const grad = ctx.createRadialGradient(px - cellSize*0.12, py - cellSize*0.12, cellSize*0.05, px, py, cellSize*0.4);
-    grad.addColorStop(0, '#9ff69a');
-    grad.addColorStop(0.4, '#45cc33');
-    grad.addColorStop(1, '#2a7a1e');
+    // Brighter, more visible green circle with pulse animation
+    const grad = ctx.createRadialGradient(px - cellSize*0.12, py - cellSize*0.12, cellSize*0.05, px, py, cellSize*0.45 * pulse);
+    grad.addColorStop(0, '#f0ffcc');
+    grad.addColorStop(0.2, '#d4ff80');
+    grad.addColorStop(0.5, '#75ff33');
+    grad.addColorStop(1, '#3aaa25');
     ctx.fillStyle = grad;
-    ctx.arc(px, py, cellSize*0.38, 0, Math.PI*2);
+    ctx.arc(px, py, cellSize*0.42 * pulse, 0, Math.PI*2);
     ctx.fill();
-    // subtle highlight
+    
+    // Inner sparkle
     ctx.beginPath();
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.ellipse(px - cellSize*0.08, py - cellSize*0.12, cellSize*0.12, cellSize*0.08, -0.6, 0, Math.PI*2);
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = 'rgba(255,255,255,0.9)';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.ellipse(px - cellSize*0.08, py - cellSize*0.12, cellSize*0.14, cellSize*0.1, -0.6, 0, Math.PI*2);
     ctx.fill();
+    
+    // Energy ring
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(212,255,128,${0.6 * pulse})`;
+    ctx.lineWidth = 2;
+    ctx.arc(px, py, cellSize*0.5, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function drawSnakeSegment(x, y, intensity=1) {
     const px = x * cellSize; const py = y * cellSize;
-    // gradient segment to look like conductor
+    
+    ctx.save();
+    // Subtle glow on body segments
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = `rgba(255,156,18,${0.3 * intensity})`;
+    
+    // gradient segment to look like conductor with more depth
     const g = ctx.createLinearGradient(px, py, px+cellSize, py+cellSize);
-    g.addColorStop(0, `rgba(255,94,58,${0.9*intensity})`);
-    g.addColorStop(0.6, `rgba(243,156,18,${0.9*intensity})`);
+    g.addColorStop(0, `rgba(255,120,58,${0.95*intensity})`);
+    g.addColorStop(0.4, `rgba(255,156,18,${0.9*intensity})`);
+    g.addColorStop(1, `rgba(230,126,34,${0.85*intensity})`);
     ctx.fillStyle = g;
     ctx.fillRect(px+2, py+2, cellSize-4, cellSize-4);
-    // small inner shine
-    ctx.fillStyle = `rgba(255,255,255,${0.08*intensity})`;
+    
+    // small inner shine with gradient
+    const shineGrad = ctx.createLinearGradient(px+4, py+4, px+cellSize-4, py+cellSize-4);
+    shineGrad.addColorStop(0, `rgba(255,255,255,${0.15*intensity})`);
+    shineGrad.addColorStop(1, `rgba(255,255,255,0)`);
+    ctx.fillStyle = shineGrad;
     ctx.fillRect(px+4, py+4, cellSize-8, cellSize-8);
+    ctx.restore();
   }
 
   // Input handling
@@ -406,10 +458,13 @@
     }
   });
 
-  // Touch swipe support for mobile: simple swipe detection on the canvas
+  // Touch swipe support for mobile: improved swipe detection on the canvas
   let touchStartX = null;
   let touchStartY = null;
-  const SWIPE_MIN = 30; // pixels
+  let touchStartTime = null;
+  const SWIPE_MIN = 20; // reduced threshold for easier mobile control
+  const SWIPE_MAX_TIME = 500; // max time for swipe gesture
+  
   // Prevent touch gestures on the canvas from scrolling the page.
   canvas.addEventListener('touchstart', (ev) => {
     // preventDefault to stop page scroll/zoom gestures when touching the game
@@ -417,6 +472,11 @@
     if (!ev.touches || !ev.touches[0]) return;
     touchStartX = ev.touches[0].clientX;
     touchStartY = ev.touches[0].clientY;
+    touchStartTime = Date.now();
+    
+    // Visual feedback - briefly flash the canvas
+    canvas.style.opacity = '0.9';
+    setTimeout(() => { canvas.style.opacity = '1'; }, 100);
   }, {passive: false});
 
   canvas.addEventListener('touchmove', (ev) => {
@@ -429,13 +489,18 @@
     if (touchStartX === null || touchStartY === null) return;
     const touch = ev.changedTouches && ev.changedTouches[0];
     if (!touch) return;
+    
     const dx = touch.clientX - touchStartX;
     const dy = touch.clientY - touchStartY;
-    if (Math.abs(dx) < SWIPE_MIN && Math.abs(dy) < SWIPE_MIN) {
+    const timeDiff = Date.now() - touchStartTime;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < SWIPE_MIN || timeDiff > SWIPE_MAX_TIME) {
       // tap — optionally start game
       if (!running && !gameOver) startGame();
     } else {
       let nd = null;
+      // Determine direction based on the dominant axis
       if (Math.abs(dx) > Math.abs(dy)) {
         nd = dx > 0 ? {x:1,y:0} : {x:-1,y:0};
       } else {
@@ -447,7 +512,9 @@
         queuedDirection = nd;
       }
     }
-    touchStartX = null; touchStartY = null;
+    touchStartX = null; 
+    touchStartY = null;
+    touchStartTime = null;
   }, {passive: false});
 
   // Buttons
