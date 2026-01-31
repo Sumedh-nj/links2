@@ -10,7 +10,8 @@ const linksData = {
 
   courses: {
     "AENL200 (CET)": {
-      "Blackboard": "https://iida.blackboard.com/ultra/courses/_106_1/outline"
+      "Blackboard": "https://iida.blackboard.com/ultra/courses/_106_1/outline",
+      "One Drive": "https://iitdabudhabi-my.sharepoint.com/:f:/g/personal/kkant_iitdabudhabi_ac_ae/IgA1z2c0PZS7SpSKP8KdWAvxARnQrbKCoolunTP-2x1HJfo?e=A5mbyu"
     },
 
     "AENL224 (Elec Mch)": {
