@@ -1,4 +1,8 @@
-// ====== Links Data ======
+<<<<<<< HEAD
+// ================= LINKS DATA =================
+=======
+8.3// ====== Links Data ======
+>>>>>>> 8b939b65b350687244cd42b6a3c7d310bd85b4fa
 const linksData = {
   general: {
     ERP: "https://iitdadierp.iitd.ac.in/student/login",
@@ -141,21 +145,40 @@ function renderUpdates() {
 
 // ================= THEME TOGGLE =================
 const toggleBtn = document.getElementById("theme-toggle");
-const currentTheme = localStorage.getItem("theme");
-if (currentTheme) document.documentElement.setAttribute("data-theme", currentTheme);
+const savedTheme = localStorage.getItem("theme");
 
-toggleBtn.addEventListener("click", () => {
-  const theme = document.documentElement.getAttribute("data-theme");
-  const newTheme = theme === "light" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", newTheme);
-  localStorage.setItem("theme", newTheme);
-});
+if (savedTheme) {
+  document.documentElement.setAttribute("data-theme", savedTheme);
+}
+
+if (toggleBtn) {
+  toggleBtn.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+  });
+}
+
+// ================= SEM 2 UPDATES =================
 
 
+<<<<<<< HEAD
+addUpdate(
+  "quizzes",
+  "AENL200: Quiz 1 scheduled for Monday 02/02/2026",
+  "2026-02-02"
+);
+
+addUpdate(
+  "quizzes",
+  "AENL202: \"Suprise\" Quiz 1 scheduled for Unknown date next week",
+  "2026-02-06"
+);
+
+// ================= INIT =================
+=======
 //Updates:
-addUpdate("timetable","AAPL105+AENL210: Timings swapped, AENL210 lecture at 10 am, AAPL105 lecture at 11 am for 16/09/2025 ","2025-09-16")
-
-
 
 
 
@@ -176,6 +199,7 @@ addUpdate("timetable","AAPL105+AENL210: Timings swapped, AENL210 lecture at 10 a
 
 
 // ====== Initialize Page ======
+>>>>>>> 8b939b65b350687244cd42b6a3c7d310bd85b4fa
 window.addEventListener("DOMContentLoaded", () => {
   renderGeneralLinks(".general", linksData.general);
   renderCourseLinks(".links", linksData.courses);
